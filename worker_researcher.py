@@ -1,14 +1,12 @@
 import pika
 import json
 
-# from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.bravesearch import BraveSearchTools
 from settings import settings
 from llm import create_agent
 
 research_agent = create_agent(
     model_id="llama-3.1-8b-instant",
-    # tools=[DuckDuckGoTools(), BraveSearchTools()],
     tools=[BraveSearchTools(settings.brave_api_key)],
     description="Você é um pesquisador sênior. Busque fatos recentes e detalhados.",
     instructions=[

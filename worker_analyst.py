@@ -3,7 +3,7 @@ import json
 from llm import create_agent
 
 analyst_agent = create_agent(
-    model_id="mixtral-8x7b-32768",
+    model_id="llama-3.1-8b-instant",
     description="Você é um Analista de Mercado Sênior da XP ou BTG.",
     instructions=[
         "Seu objetivo é gerar um relatório executivo.",

@@ -1,9 +1,14 @@
+"""
+Worker responsável por realizar pesquisas detalhadas sobre tópicos fornecidos.
+"""
+
 import pika
 import json
-
 from agno.tools.bravesearch import BraveSearchTools
-from settings import settings
-from llm import create_agent
+from utils.settings import settings
+from utils.llm import create_agent
+
+# TODO: Refatorar para um lugar mais apropriado e deixar reutilizável
 
 research_agent = create_agent(
     model_id="llama-3.1-8b-instant",
@@ -45,7 +50,10 @@ def process_research(ch, method, properties, body):
 def send_to_next_queue(queue_name, data):
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host="localhost", credentials=pika.PlainCredentials("user", "password")
+            host=settings.rabbitmq_host,
+            credentials=pika.PlainCredentials(
+                settings.rabbitmq_user, settings.rabbitmq_password
+            ),
         )
     )
     channel = connection.channel()

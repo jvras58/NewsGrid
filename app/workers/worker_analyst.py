@@ -4,21 +4,11 @@ Worker responsável por analisar dados de pesquisa bruta e gerar relatórios exe
 
 import pika
 import json
-from utils.llm import create_agent
+from app.agents.agent_analyst import AnalystAgent
 
 # TODO: Refatorar para um lugar mais apropriado e deixar reutilizável
 
-analyst_agent = create_agent(
-    model_id="llama-3.1-8b-instant",
-    description="Você é um Analista de Mercado Sênior da XP ou BTG.",
-    instructions=[
-        "Seu objetivo é gerar um relatório executivo.",
-        "Use tom profissional, direto e baseado em dados.",
-        "Não invente fatos, use apenas o que foi fornecido na pesquisa.",
-        "Formate a saída em Markdown limpo.",
-    ],
-    markdown=True,
-)
+analyst_agent = AnalystAgent()
 
 
 def save_report(task_id, topic, report_content):

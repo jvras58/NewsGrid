@@ -6,6 +6,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      # TODO: pegar dos .env
-      RABBITMQ_DEFAULT_USER: user
-      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    env_file:
+      - .env

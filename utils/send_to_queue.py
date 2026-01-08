@@ -16,15 +16,18 @@ def send_to_queue(queue_name, data):
             ),
         )
     )
-    channel = connection.channel()
-    channel.queue_declare(queue=queue_name, durable=True)
+    try:
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_name, durable=True)
 
-    channel.basic_publish(
-        exchange="",
-        routing_key=queue_name,
-        body=json.dumps(data),
-        properties=pika.BasicProperties(
-            delivery_mode=2,
-        ),
-    )
-    connection.close()
+        channel.basic_publish(
+            exchange="",
+            routing_key=queue_name,
+            body=json.dumps(data),
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            ),
+        )
+    finally:
+        connection.close()
+    print(f" [x] Mensagem enviada para a fila {queue_name}")

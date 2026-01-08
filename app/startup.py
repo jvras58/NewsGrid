@@ -31,7 +31,7 @@ app.include_router(analyze_router, prefix="/api/v1/analyze", tags=["Analyze"])
 
 @app.get("/")
 async def root():
-    return {"message": "Agents API", "docs": "/docs", "version": "1.0.0"}
+    return {"message": "Agents API", "docs": "/docs", "version": settings.api_version}
 
 
 if __name__ == "__main__":

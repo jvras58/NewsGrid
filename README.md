@@ -41,22 +41,36 @@ O usuário solicita uma análise sobre um tema (ex: "Impacto da IA no mercado de
 
 1. Execute o script principal:
    ```sh
-   uv run uvicorn api:app --reload
+   make run
    ```
 
 2. Rode os workers:
-   - `uv run python worker_researcher.pyy` para pesquisa.
-   - `uv run python worker_analyst.py` para análise.
+   - `make worker1` para pesquisa.
+   - `make worker2` para análise.
 
 Consulte [settings.py](settings.py) para configurações e [llm.py](llm.py) para a criação de agentes.
 
 ## Estrutura do Projeto
 
-- `api.py`: API principal.
-- `llm.py`: Configuração de agentes LLM.
-- `worker_researcher.py`: Worker para pesquisa de notícias.
-- `worker_analyst.py`: Worker para análise e relatórios.
-- `settings.py`: Configurações globais.
+```
+├── app/
+│   ├── startup.py              # Inicialização da aplicação FastAPI
+│   ├── api/
+│   │   └── analyze/
+│   │       ├── controller.py   # Lógica de negócio da análise
+│   │       ├── routes.py       # Rotas da API
+│   │       └── schemas.py      # Schemas de validação
+│   └── workers/
+│       ├── worker_researcher.py  # Worker para pesquisa de notícias
+│       └── worker_analyst.py     # Worker para análise e relatórios
+├── utils/
+│   ├── llm.py                  # Configuração de agentes LLM
+│   ├── send_to_queue.py        # Envio de mensagens para RabbitMQ
+│   └── settings.py             # Configurações globais
+├── compose.yml                 # Configuração do Docker Compose
+├── makefile                    # Comandos de automação
+└── pyproject.toml              # Dependências do projeto
+```
 
 
 ## Referencias:

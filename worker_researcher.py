@@ -1,10 +1,7 @@
 import pika
 import json
-from dotenv import load_dotenv
 from agno.tools.duckduckgo import DuckDuckGoTools
 from llm import create_agent
-
-load_dotenv()
 
 research_agent = create_agent(
     model_id="llama-3.1-8b-instant",

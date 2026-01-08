@@ -1,9 +1,6 @@
 import pika
 import json
-from dotenv import load_dotenv
 from llm import create_agent
-
-load_dotenv()
 
 analyst_agent = create_agent(
     model_id="mixtral-8x7b-32768",

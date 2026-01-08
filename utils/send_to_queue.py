@@ -4,18 +4,11 @@ Envio de mensagens para a fila RabbitMQ.
 
 import pika
 import json
-from utils.settings import settings
+from utils.broker import get_rabbitmq_connection
 
 
 def send_to_queue(queue_name, data):
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(
-            host=settings.rabbitmq_host,
-            credentials=pika.PlainCredentials(
-                settings.rabbitmq_user, settings.rabbitmq_password
-            ),
-        )
-    )
+    connection = get_rabbitmq_connection()
     try:
         channel = connection.channel()
         channel.queue_declare(queue=queue_name, durable=True)

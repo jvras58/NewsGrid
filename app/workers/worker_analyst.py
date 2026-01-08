@@ -1,6 +1,10 @@
+"""
+Worker responsável por analisar dados de pesquisa bruta e gerar relatórios executivos.
+"""
+
 import pika
 import json
-from llm import create_agent
+from utils.llm import create_agent
 
 analyst_agent = create_agent(
     model_id="llama-3.1-8b-instant",

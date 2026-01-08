@@ -1,5 +1,9 @@
+"""
+Utilitários para criação e configuração de agentes LLM.
+"""
+
 from agno.agent import Agent
-from settings import settings
+from utils.settings import settings
 from agno.models.groq import Groq
 
 

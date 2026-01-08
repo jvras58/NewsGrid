@@ -2,21 +2,13 @@
 Worker responsável por analisar dados de pesquisa bruta e gerar relatórios executivos.
 """
 
-import pika
 import json
 from app.agents.agent_analyst import AnalystAgent
+from utils.broker import get_rabbitmq_connection
+from utils.reporting import save_report
 
-# TODO: Refatorar para um lugar mais apropriado e deixar reutilizável
 
 analyst_agent = AnalystAgent()
-
-
-def save_report(task_id, topic, report_content):
-    filename = f"report_{task_id}.md"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(f"# Relatório de Inteligência: {topic}\n\n")
-        f.write(report_content)
-    print(f" [V] Relatório salvo em: {filename}")
 
 
 def process_analysis(ch, method, properties, body):
@@ -47,17 +39,19 @@ def process_analysis(ch, method, properties, body):
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(
-        host="localhost", credentials=pika.PlainCredentials("user", "password")
-    )
-)
-channel = connection.channel()
+if __name__ == "__main__":
+    connection = get_rabbitmq_connection()
+    channel = connection.channel()
 
-channel.queue_declare(queue="queue_analysis", durable=True)
+    channel.queue_declare(queue="queue_analysis", durable=True)
+    channel.basic_qos(prefetch_count=1)
 
-channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue="queue_analysis", on_message_callback=process_analysis)
+    channel.basic_consume(queue="queue_analysis", on_message_callback=process_analysis)
 
-print(" [*] Analyst Agent esperando dados para processar...")
-channel.start_consuming()
+    print(" [*] Analyst Agent esperando dados para processar...")
+
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt:
+        channel.stop_consuming()
+        connection.close()

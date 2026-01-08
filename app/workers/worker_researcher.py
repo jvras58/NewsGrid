@@ -8,6 +8,8 @@ from agno.tools.bravesearch import BraveSearchTools
 from utils.settings import settings
 from utils.llm import create_agent
 
+# TODO: Refatorar para um lugar mais apropriado e deixar reutilizável
+
 research_agent = create_agent(
     model_id="llama-3.1-8b-instant",
     tools=[BraveSearchTools(settings.brave_api_key)],

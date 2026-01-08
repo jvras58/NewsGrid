@@ -6,6 +6,8 @@ import pika
 import json
 from utils.llm import create_agent
 
+# TODO: Refatorar para um lugar mais apropriado e deixar reutilizável
+
 analyst_agent = create_agent(
     model_id="llama-3.1-8b-instant",
     description="Você é um Analista de Mercado Sênior da XP ou BTG.",

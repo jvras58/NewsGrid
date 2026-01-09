@@ -94,3 +94,5 @@ Consulte [settings.py](settings.py) para configurações e [llm.py](llm.py) para
 - 🌐 [Brave](https://api-dashboard.search.brave.com/app/)
 - 📖 [Agno](https://docs.agno.com/)
 - 🛠️ [Tools](https://docs.agno.com/integrations/toolkits/search/bravesearch)
+- 📨 [RabbitMQ com Python - Contexto Teórico e Protocolo AMQP](https://www.youtube.com/watch?v=V_DBYCuwQAk)
+- 🔍 [RabbitMQ](https://www.rabbitmq.com/docs/use-rabbitmq)

@@ -6,21 +6,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "agno>=2.3.24",
-    "ddgs>=9.10.0",
-    "duckduckgo-search>=8.1.1",
+    "brave-search>=0.1.0",
     "fastapi>=0.128.0",
     "groq>=1.0.0",
     "pika>=1.3.2",
     "pydantic-settings>=2.12.0",
     "uvicorn>=0.40.0",
 ]
-
-[project.scripts]
-worker-researcher = "app.workers.worker_researcher:main"
-worker-analyst = "app.workers.worker_analyst:main"
-start-workers = "scripts.start_workers:main"
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["app*", "scripts*"]
-exclude = ["logs*"]

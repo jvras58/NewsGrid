@@ -38,7 +38,7 @@ def process_analysis(ch, method, properties, body):
         logger.info("Análise concluída e arquivada.")
 
     except Exception as e:
-        logger.error(f"Erro na análise: {e}")
+        logger.error(f"Erro na análise de '{topic}' (task_id: {data.get('task_id')}): {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 

@@ -9,7 +9,6 @@ from app.api.analyze.routes import router as analyze_router
 from utils.settings import settings
 from utils.logging import setup_logging
 
-# Configurar logging
 setup_logging()
 
 app = FastAPI(

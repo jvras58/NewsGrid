@@ -14,7 +14,10 @@ def start_worker(command):
 
 
 def main():
-    workers = ["worker-researcher", "worker-analyst"]
+    workers = [
+        "uv run python -m app.workers.worker_researcher",
+        "uv run python -m app.workers.worker_analyst",
+    ]
 
     processes = []
 

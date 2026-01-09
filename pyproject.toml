@@ -14,3 +14,13 @@ dependencies = [
     "pydantic-settings>=2.12.0",
     "uvicorn>=0.40.0",
 ]
+
+[project.scripts]
+worker-researcher = "app.workers.worker_researcher:main"
+worker-analyst = "app.workers.worker_analyst:main"
+start-workers = "scripts.start_workers:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "scripts*"]
+exclude = ["logs*"]

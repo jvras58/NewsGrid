@@ -4,9 +4,13 @@
 install:
 	uv sync
 
+# Modo pacote
+package:
+	uv pip install -e .
+
 # Executar a Aplicação
 run:
-	$env:PYTHONPATH = "."; uv run uvicorn app.startup:app --reload --host 0.0.0.0 --port 8000
+	set PYTHONPATH=. && uv run uvicorn app.startup:app --reload --host 0.0.0.0 --port 8000
 	
 
 # iniciar o RabbitMQ
@@ -18,10 +22,14 @@ init_rabbitmq:
 
 # iniciar os workers
 worker1:
-	$env:PYTHONPATH = "."; uv run app/workers/worker_researcher.py
+	set PYTHONPATH=. && uv run worker-researcher
 
 worker2:
-	$env:PYTHONPATH = "."; uv run app/workers/worker_analyst.py
+	set PYTHONPATH=. && uv run worker-analyst
+
+# iniciar todos os workers
+workers:
+	set PYTHONPATH=. && uv run start-workers
 
 
 # teste

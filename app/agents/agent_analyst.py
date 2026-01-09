@@ -2,20 +2,19 @@
 Agente Analista de Mercado
 """
 
-from utils.llm import create_agent
+from utils.base_agent import BaseAgent
 
 
-class AnalystAgent:
+class AnalystAgent(BaseAgent):
+    """
+    Agente para análise de mercado e geração de relatórios executivos.
+    """
+
     def __init__(self):
         """
         Inicializa o Agente Analista com configurações específicas.
-
-        Args:
-            None
-        Returns:
-            None
         """
-        self.agent = create_agent(
+        super().__init__(
             model_id="llama-3.1-8b-instant",
             description="Você é um Analista de Mercado Sênior da XP ou BTG.",
             instructions=[
@@ -28,10 +27,12 @@ class AnalystAgent:
         )
 
     def run(self, prompt):
-        """Execute o agente com o prompt fornecido.
+        """
+        Executa o agente com o prompt fornecido.
 
         Args:
-            prompt (str): Prompt de entrada para o agente.
+            prompt (str): Prompt de entrada.
+
         Returns:
             Response: Resposta do agente.
         """

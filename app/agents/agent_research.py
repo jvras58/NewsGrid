@@ -4,20 +4,19 @@ Agente Pesquisador
 
 from agno.tools.bravesearch import BraveSearchTools
 from utils.settings import settings
-from utils.llm import create_agent
+from utils.base_agent import BaseAgent
 
 
-class ResearchAgent:
+class ResearchAgent(BaseAgent):
+    """
+    Agente para pesquisa de tópicos com ferramentas de busca.
+    """
+
     def __init__(self):
         """
         Inicializa o Agente Pesquisador com ferramentas de busca integradas.
-
-        Args:
-            None
-        Returns:
-            None
         """
-        self.agent = create_agent(
+        super().__init__(
             model_id="llama-3.1-8b-instant",
             tools=[
                 BraveSearchTools(
@@ -34,10 +33,12 @@ class ResearchAgent:
         )
 
     def run(self, prompt):
-        """Execute o agente com o prompt fornecido.
+        """
+        Executa o agente com o prompt fornecido.
 
         Args:
-            prompt (str): Prompt de entrada para o agente.
+            prompt (str): Prompt de entrada.
+
         Returns:
             Response: Resposta do agente.
         """

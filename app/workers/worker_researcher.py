@@ -35,7 +35,10 @@ def process_research(ch, method, properties, body):
         logger.info("Pesquisa concluída e enviada para análise.")
 
     except Exception as e:
-        logger.error(f"Erro: {e}")
+        logger.error(
+            f"Erro ao pesquisar tópico '{data.get('topic')}' "
+            f"(task_id: {data.get('task_id')}): {e}"
+        )
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 

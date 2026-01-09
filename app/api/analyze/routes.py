@@ -14,5 +14,5 @@ router = APIRouter()
 async def request_analysis(topic: str = Query(..., description="Tópico para análise")):
     logger.info(f"Requisição recebida para análise de tópico: {topic}")
     result = request_analysis_logic(topic)
-    logger.info(f"Resposta enviada para tópico {topic}: {result['status']}")
+    logger.info(f"Resposta enviada para tópico {topic}: {result.get('status', 'unknown')}")
     return result

@@ -2,6 +2,10 @@
 Módulo utilitário para funções de geração e salvamento de relatórios.
 """
 
+from utils.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 def save_report(task_id: str, topic: str, report_content: str):
     """
@@ -11,4 +15,4 @@ def save_report(task_id: str, topic: str, report_content: str):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(f"# Relatório de Inteligência: {topic}\n\n")
         f.write(report_content)
-    print(f" [V] Relatório salvo em: {filename}")
+    logger.info(f"Relatório salvo em: {filename}")

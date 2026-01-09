@@ -8,13 +8,24 @@ from utils.broker import get_rabbitmq_connection
 from utils.reporting import save_report
 from utils.logging import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger("worker_analyst")
 
 
 analyst_agent = AnalystAgent()
 
 
 def process_analysis(ch, method, properties, body):
+    """Processa mensagens da fila de análise
+
+    Args:
+        ch: Canal do RabbitMQ.
+        method: Método de entrega da mensagem.
+        properties: Propriedades da mensagem.
+        body: Corpo da mensagem (dados em JSON).
+
+    Returns:
+        None
+    """
     data = json.loads(body)
     topic = data["topic"]
     raw_research = data["raw_research"]
@@ -38,7 +49,9 @@ def process_analysis(ch, method, properties, body):
         logger.info("Análise concluída e arquivada.")
 
     except Exception as e:
-        logger.error(f"Erro na análise de '{topic}' (task_id: {data.get('task_id')}): {e}")
+        logger.error(
+            f"Erro na análise de '{topic}' (task_id: {data.get('task_id')}): {e}"
+        )
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 

@@ -9,12 +9,22 @@ from utils.logging import get_logger
 from app.agents.agent_research import ResearchAgent
 
 
-logger = get_logger(__name__)
+logger = get_logger("worker_researcher")
 
 research_agent = ResearchAgent()
 
 
 def process_research(ch, method, properties, body):
+    """Processa mensagens da fila de pesquisa
+
+    Args:
+        ch: Canal do RabbitMQ.
+        method: Método de entrega da mensagem.
+        properties: Propriedades da mensagem.
+        body: Corpo da mensagem (dados em JSON).
+    Returns:
+        None
+    """
     data = json.loads(body)
     logger.info(f"Pesquisando sobre: {data['topic']}")
 

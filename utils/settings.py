@@ -23,6 +23,13 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
 
+    # Configurações de logging
+    log_file: str = "logs/app.log"
+    log_max_bytes: int = 10485760
+    log_backup_count: int = 5
+    log_console_level: str = "INFO"
+    log_file_level: str = "WARNING"
+
     # Configurações opcionais
     debug: bool = False
     cors_origins: list[str] = ["*"]

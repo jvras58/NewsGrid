@@ -53,6 +53,10 @@ class ResearchWorker(BaseWorker):
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
-if __name__ == "__main__":
+def main():
     worker = ResearchWorker()
     worker.run()
+
+
+if __name__ == "__main__":
+    main()

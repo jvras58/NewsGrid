@@ -25,5 +25,13 @@ def send_to_queue(queue_name, data):
             ),
         )
         logger.info(f"Mensagem enviada para a fila {queue_name}")
+    except Exception as exc:
+        logger.error(
+            "Erro ao enviar mensagem para a fila %s: %s",
+            queue_name,
+            exc,
+            exc_info=True,
+        )
+        raise
     finally:
         connection.close()

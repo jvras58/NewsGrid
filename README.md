@@ -56,6 +56,16 @@ Siga estes passos simples para configurar o projeto:
    make run
    ```
 
+## 🧪 Testes
+
+O projeto inclui uma suíte de testes automatizados para garantir a qualidade e integridade do código. Execute os testes com:
+
+```sh
+uv run pytest
+```
+>Dependências instaladas via `uv sync --group dev` (para incluir ferramentas de teste como pytest).
+
+Para mais detalhes sobre estrutura, execução e boas práticas, consulte [docs/TESTES.MD](docs/TESTES.MD).
 
 ## 📁 Estrutura do Projeto
 
@@ -80,9 +90,8 @@ Siga estes passos simples para configurar o projeto:
 │   └── workers/
 │       ├── worker_analyst.py     # Worker para análise e relatórios 📊
 │       ├── worker_researcher.py  # Worker para pesquisa de notícias 🔎
-├── docs/
-│   └── CHECKPOINT.MD             # Documento de checkpoints de melhorias
-├── logs/                         # Diretório para logs
+├── docs/                         # Documentos do projeto 📦
+├── logs/                         # Diretório para logs 🔎
 ├── scripts/                      # Diretório para scripts
 └── utils/
     ├── base_agent.py             # base para agentes 🧠

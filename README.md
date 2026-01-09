@@ -55,23 +55,37 @@ Consulte [settings.py](settings.py) para configurações e [llm.py](llm.py) para
 ## 📁 Estrutura do Projeto
 
 ```
+├── .env-sample                   # Exemplo de arquivo de variáveis de ambiente
+├── .gitignore                    # Arquivos ignorados pelo Git
+├── .python-version               # Versão do Python
+├── compose.yml                   # Configuração do Docker Compose 🐳
+├── makefile                      # Comandos de automação 🔧
+├── pyproject.toml                # Dependências do projeto 📦
+├── README.md                     # Este arquivo
+├── __pycache__/                  # Cache de bytecode Python
 ├── app/
-│   ├── startup.py              # Inicialização da aplicação FastAPI 🚀
+│   ├── startup.py               # Inicialização da aplicação FastAPI 🚀
+│   ├── agents/
+│   │   ├── agent_analyst.py     # Agente analista de mercado 📈
+│   │   ├── agent_research.py    # Agente pesquisador 🔍
 │   ├── api/
 │   │   └── analyze/
-│   │       ├── controller.py   # Lógica de negócio da análise 🧠
-│   │       ├── routes.py       # Rotas da API 🛤️
-│   │       └── schemas.py      # Schemas de validação ✅
+│   │       ├── controller.py      # Lógica de negócio da análise 🧠
+│   │       ├── routes.py          # Rotas da API 🛤️
+│   │       ├── schemas.py8        # Schemas de validação ✅
 │   └── workers/
-│       ├── worker_researcher.py  # Worker para pesquisa de notícias 🔍
-│       └── worker_analyst.py     # Worker para análise e relatórios 📈
-├── utils/
-│   ├── llm.py                  # Configuração de agentes LLM 🤖
-│   ├── send_to_queue.py        # Envio de mensagens para RabbitMQ 📨
-│   └── settings.py             # Configurações globais ⚙️
-├── compose.yml                 # Configuração do Docker Compose 🐳
-├── makefile                    # Comandos de automação 🔧
-└── pyproject.toml              # Dependências do projeto 📦
+│       ├── worker_analyst.py     # Worker para análise e relatórios 📊
+│       ├── worker_researcher.py  # Worker para pesquisa de notícias 🔎
+├── docs/
+│   └── CHECKPOINT.MD             # Documento de checkpoints de melhorias
+├── logs/                         # Diretório para logs
+└── utils/
+    ├── broker.py                 # Utilitários para conexão com RabbitMQ
+    ├── llm.py                    # Configuração de agentes LLM 🤖
+    ├── logging.py                # Configuração de logging
+    ├── reporting.py              # Utilitários para geração de relatórios
+    ├── send_to_queue.py          # Envio de mensagens para RabbitMQ 📨
+    ├── settings.py               # Configurações globais ⚙️
 ```
 
 ## 📚 Referências

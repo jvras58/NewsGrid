@@ -46,3 +46,7 @@ workers:
 # teste
 test-curl:
 	Invoke-WebRequest -Method POST -Uri "http://127.0.0.1:8000/api/v1/analyze?topic=Futuro%20do%20Javascript%20em%202025" -UseBasicParsing
+
+# cobertura de teste
+test-coverage:
+	set PYTHONPATH=. && uv run pytest --cov=app --cov-report=html

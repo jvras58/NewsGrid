@@ -6,6 +6,9 @@ import json
 from app.agents.agent_analyst import AnalystAgent
 from utils.broker import get_rabbitmq_connection
 from utils.reporting import save_report
+from utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 analyst_agent = AnalystAgent()
@@ -16,7 +19,7 @@ def process_analysis(ch, method, properties, body):
     topic = data["topic"]
     raw_research = data["raw_research"]
 
-    print(f" [x] Analisando dados sobre: {topic}...")
+    logger.info(f"Analisando dados sobre: {topic}...")
 
     try:
         prompt = (
@@ -32,10 +35,10 @@ def process_analysis(ch, method, properties, body):
         save_report(data["task_id"], topic, final_report)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
-        print(" [x] Análise concluída e arquivada.")
+        logger.info("Análise concluída e arquivada.")
 
     except Exception as e:
-        print(f" [!] Erro na análise: {e}")
+        logger.error(f"Erro na análise de '{topic}' (task_id: {data.get('task_id')}): {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
@@ -48,7 +51,7 @@ if __name__ == "__main__":
 
     channel.basic_consume(queue="queue_analysis", on_message_callback=process_analysis)
 
-    print(" [*] Analyst Agent esperando dados para processar...")
+    logger.info("Analyst Agent esperando dados para processar...")
 
     try:
         channel.start_consuming()

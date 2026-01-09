@@ -21,7 +21,14 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
 
+    # Configurações de logging e níveis específicos por handler
     log_level: str = "INFO"
+
+    log_file: str = "logs/app.log"
+    log_max_bytes: int = 10485760
+    log_backup_count: int = 5
+    log_console_level: str = "INFO"
+    log_file_level: str = "WARNING"
 
     # Configurações opcionais
     debug: bool = False

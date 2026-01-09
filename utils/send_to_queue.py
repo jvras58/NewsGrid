@@ -5,6 +5,9 @@ Envio de mensagens para a fila RabbitMQ.
 import pika
 import json
 from utils.broker import get_rabbitmq_connection
+from utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def send_to_queue(queue_name, data):
@@ -21,6 +24,14 @@ def send_to_queue(queue_name, data):
                 delivery_mode=2,
             ),
         )
+        logger.info(f"Mensagem enviada para a fila {queue_name}")
+    except Exception as exc:
+        logger.error(
+            "Erro ao enviar mensagem para a fila %s: %s",
+            queue_name,
+            exc,
+            exc_info=True,
+        )
+        raise
     finally:
         connection.close()
-    print(f" [x] Mensagem enviada para a fila {queue_name}")

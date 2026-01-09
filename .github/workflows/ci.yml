@@ -10,8 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      GROQ_API_KEY: "test_groq_api_key_for_ci"
-      BRAVE_API_KEY: "test_brave_api_key_for_ci"
+      GROQ_API_KEY: "dummy_key_for_testing"
+      BRAVE_API_KEY: "dummy_key_for_testing"
       RABBITMQ_HOST: "localhost"
       RABBITMQ_USER: "user"
       RABBITMQ_PASSWORD: "password"

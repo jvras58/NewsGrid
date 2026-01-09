@@ -10,29 +10,30 @@ services:
     env_file:
       - .env
     depends_on:
-      - rabbitmq
-      - researcher
-      - analyst
+      rabbitmq:
+        condition: service_healthy
 
   researcher:
     build:
       context: .
       dockerfile: Dockerfile
-    command: uv run worker-researcher
+    command: uv run python -m app.workers.worker_researcher
     env_file:
       - .env
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
   
   analyst:
     build:
       context: .
       dockerfile: Dockerfile
-    command: uv run worker-analyst
+    command: uv run python -m app.workers.worker_analyst
     env_file:
       - .env
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -44,3 +45,8 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

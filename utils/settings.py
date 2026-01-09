@@ -21,13 +21,17 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
 
+    # Nível de log do logger raiz (usado em setup_logging para definir o nível base)
+    # Os handlers individuais (console/arquivo) podem ter níveis próprios abaixo.
     log_level: str = "INFO"
 
-    # Configurações de logging
+    # Configurações de logging e níveis específicos por handler
     log_file: str = "logs/app.log"
     log_max_bytes: int = 10485760
     log_backup_count: int = 5
+    # Nível mínimo de log exibido no console (handler de console)
     log_console_level: str = "INFO"
+    # Nível mínimo de log gravado no arquivo (handler de arquivo)
     log_file_level: str = "WARNING"
 
     # Configurações opcionais

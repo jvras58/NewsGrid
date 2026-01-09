@@ -7,6 +7,14 @@ from utils.llm import create_agent
 
 class AnalystAgent:
     def __init__(self):
+        """
+        Inicializa o Agente Analista com configurações específicas.
+
+        Args:
+            None
+        Returns:
+            None
+        """
         self.agent = create_agent(
             model_id="llama-3.1-8b-instant",
             description="Você é um Analista de Mercado Sênior da XP ou BTG.",
@@ -20,4 +28,11 @@ class AnalystAgent:
         )
 
     def run(self, prompt):
+        """Execute o agente com o prompt fornecido.
+
+        Args:
+            prompt (str): Prompt de entrada para o agente.
+        Returns:
+            Response: Resposta do agente.
+        """
         return self.agent.run(prompt)

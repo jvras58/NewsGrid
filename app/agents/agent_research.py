@@ -9,6 +9,14 @@ from utils.llm import create_agent
 
 class ResearchAgent:
     def __init__(self):
+        """
+        Inicializa o Agente Pesquisador com ferramentas de busca integradas.
+
+        Args:
+            None
+        Returns:
+            None
+        """
         self.agent = create_agent(
             model_id="llama-3.1-8b-instant",
             tools=[
@@ -26,4 +34,11 @@ class ResearchAgent:
         )
 
     def run(self, prompt):
+        """Execute o agente com o prompt fornecido.
+
+        Args:
+            prompt (str): Prompt de entrada para o agente.
+        Returns:
+            Response: Resposta do agente.
+        """
         return self.agent.run(prompt)

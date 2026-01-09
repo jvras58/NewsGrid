@@ -50,6 +50,11 @@ RABBITMQ_PASSWORD=sua_senha
    docker compose logs -f
    ```
 
+4. **📜 Verifique a Estrutura interna do compose** (Opcional)
+   ```sh
+   docker compose config
+   ```
+
 ## 🛑 Parando os Serviços
 
 Para parar e remover os containers:

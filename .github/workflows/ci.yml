@@ -9,6 +9,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: "test_groq_api_key_for_ci"
+      BRAVE_API_KEY: "test_brave_api_key_for_ci"
+      RABBITMQ_HOST: "localhost"
+      RABBITMQ_USER: "user"
+      RABBITMQ_PASSWORD: "password"
     steps:
       - uses: actions/checkout@v4
       - name: Install uv

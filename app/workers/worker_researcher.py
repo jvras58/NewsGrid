@@ -5,14 +5,18 @@ Worker responsável por realizar pesquisas detalhadas sobre tópicos fornecidos.
 import json
 from utils.broker import get_rabbitmq_connection
 from utils.send_to_queue import send_to_queue
+from utils.logging import get_logger
 from app.agents.agent_research import ResearchAgent
+
+
+logger = get_logger(__name__)
 
 research_agent = ResearchAgent()
 
 
 def process_research(ch, method, properties, body):
     data = json.loads(body)
-    print(f" [x] Pesquisando sobre: {data['topic']}")
+    logger.info(f"Pesquisando sobre: {data['topic']}")
 
     try:
         response = research_agent.run(
@@ -28,10 +32,10 @@ def process_research(ch, method, properties, body):
         send_to_queue("queue_analysis", next_stage_payload)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
-        print(" [x] Pesquisa concluída e enviada para análise.")
+        logger.info("Pesquisa concluída e enviada para análise.")
 
     except Exception as e:
-        print(f" [!] Erro: {e}")
+        logger.error(f"Erro: {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
@@ -42,7 +46,7 @@ if __name__ == "__main__":
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue="queue_research", on_message_callback=process_research)
 
-    print(" [*] Researcher Agent esperando mensagens...")
+    logger.info("Researcher Agent esperando mensagens...")
     try:
         channel.start_consuming()
     except KeyboardInterrupt:

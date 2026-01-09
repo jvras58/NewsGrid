@@ -8,8 +8,19 @@ install:
 package:
 	uv pip install -e .
 
-# Executar a Aplicação
+# Executar a Api
 run:
+	set PYTHONPATH=. && uv run uvicorn app.startup:app --reload --host 0.0.0.0 --port 8000
+
+# Executar a Aplicação completa com os workers
+dev:
+ifeq ($(OS),Windows_NT)
+	start cmd /c "set PYTHONPATH=. && uv run worker-researcher"
+	start cmd /c "set PYTHONPATH=. && uv run worker-analyst"
+else
+	set PYTHONPATH=. && uv run worker-researcher &
+	set PYTHONPATH=. && uv run worker-analyst &
+endif
 	set PYTHONPATH=. && uv run uvicorn app.startup:app --reload --host 0.0.0.0 --port 8000
 	
 
@@ -20,7 +31,7 @@ init_rabbitmq:
 	@echo "Aguardando RabbitMQ iniciar..."
 	ping -n 11 127.0.0.1 >nul
 
-# iniciar os workers
+# iniciar os workers separadamente
 worker1:
 	set PYTHONPATH=. && uv run worker-researcher
 

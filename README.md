@@ -41,16 +41,20 @@ Siga estes passos simples para configurar o projeto:
 
 ## 🚀 Uso
 
-1. ▶️ **Execute o script principal**:
+1. ▶️ **Execute a API junto com os Workers no modo dev**:
+   ```sh
+   make dev
+   ```
+
+2. 👷 **Rode os workers separadamente da API**:
+   - `make worker1` para pesquisa de notícias. 🔎
+   - `make worker2` para análise e geração de relatórios. 📊
+
+3. ▶️ **Execute a API separadamente dos workers**:
    ```sh
    make run
    ```
 
-2. 👷 **Rode os workers**:
-   - `make worker1` para pesquisa de notícias. 🔎
-   - `make worker2` para análise e geração de relatórios. 📊
-
-Consulte [settings.py](settings.py) para configurações e [llm.py](llm.py) para a criação de agentes.
 
 ## 📁 Estrutura do Projeto
 
@@ -62,7 +66,6 @@ Consulte [settings.py](settings.py) para configurações e [llm.py](llm.py) para
 ├── makefile                      # Comandos de automação 🔧
 ├── pyproject.toml                # Dependências do projeto 📦
 ├── README.md                     # Este arquivo
-├── __pycache__/                  # Cache de bytecode Python
 ├── app/
 │   ├── startup.py               # Inicialização da aplicação FastAPI 🚀
 │   ├── agents/
@@ -79,7 +82,10 @@ Consulte [settings.py](settings.py) para configurações e [llm.py](llm.py) para
 ├── docs/
 │   └── CHECKPOINT.MD             # Documento de checkpoints de melhorias
 ├── logs/                         # Diretório para logs
+├── scripts/                      # Diretório para scripts
 └── utils/
+    ├── base_agent.py             # base para agentes 🧠
+    ├── base_worker.py            # base para workers 🔧
     ├── broker.py                 # Utilitários para conexão com RabbitMQ
     ├── llm.py                    # Configuração de agentes LLM 🤖
     ├── logging.py                # Configuração de logging

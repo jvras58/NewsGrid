@@ -3,65 +3,56 @@ Worker responsável por realizar pesquisas detalhadas sobre tópicos fornecidos.
 """
 
 import json
-from utils.broker import get_rabbitmq_connection
+from utils.base_worker import BaseWorker
 from utils.send_to_queue import send_to_queue
-from utils.logging import get_logger
 from app.agents.agent_research import ResearchAgent
 
 
-logger = get_logger("worker_researcher")
-
-research_agent = ResearchAgent()
-
-
-def process_research(ch, method, properties, body):
-    """Processa mensagens da fila de pesquisa
-
-    Args:
-        ch: Canal do RabbitMQ.
-        method: Método de entrega da mensagem.
-        properties: Propriedades da mensagem.
-        body: Corpo da mensagem (dados em JSON).
-    Returns:
-        None
+class ResearchWorker(BaseWorker):
     """
-    data = json.loads(body)
-    logger.info(f"Pesquisando sobre: {data['topic']}")
+    Worker para pesquisa de tópicos.
+    """
 
-    try:
-        response = research_agent.run(
-            f"Pesquise as últimas notícias sobre: {data['topic']}"
-        )
+    def __init__(self):
+        super().__init__("queue_research", ResearchAgent)
 
-        next_stage_payload = {
-            "task_id": data["task_id"],
-            "topic": data["topic"],
-            "raw_research": response.content,
-        }
+    def process_message(self, ch, method, properties, body):
+        """
+        Processa mensagens da fila de pesquisa.
 
-        send_to_queue("queue_analysis", next_stage_payload)
+        Args:
+            ch: Canal do RabbitMQ.
+            method: Método de entrega.
+            properties: Propriedades da mensagem.
+            body: Corpo da mensagem (bytes).
+        """
+        data = json.loads(body)
+        topic = data["topic"]
+        task_id = data["task_id"]
 
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        logger.info("Pesquisa concluída e enviada para análise.")
+        self.logger.info(f"Pesquisando sobre: {topic}")
 
-    except Exception as e:
-        logger.error(
-            f"Erro ao pesquisar tópico '{data.get('topic')}' "
-            f"(task_id: {data.get('task_id')}): {e}"
-        )
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        try:
+            response = self.agent.run(f"Pesquise as últimas notícias sobre: {topic}")
+
+            next_stage_payload = {
+                "task_id": task_id,
+                "topic": topic,
+                "raw_research": response.content,
+            }
+
+            send_to_queue("queue_analysis", next_stage_payload)
+
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            self.logger.info("Pesquisa concluída e enviada para análise.")
+
+        except Exception as e:
+            self.logger.error(
+                f"Erro ao pesquisar tópico '{topic}' (task_id: {task_id}): {e}"
+            )
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
 if __name__ == "__main__":
-    connection = get_rabbitmq_connection()
-    channel = connection.channel()
-    channel.queue_declare(queue="queue_research", durable=True)
-    channel.basic_qos(prefetch_count=1)
-    channel.basic_consume(queue="queue_research", on_message_callback=process_research)
-
-    logger.info("Researcher Agent esperando mensagens...")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        channel.stop_consuming()
-        connection.close()
+    worker = ResearchWorker()
+    worker.run()

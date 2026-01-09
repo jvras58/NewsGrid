@@ -13,6 +13,11 @@ _logging_configured = False
 def setup_logging():
     """
     Configura o sistema de logging com handlers para console e arquivo rotativo.
+
+    Args:
+        None
+    Returns:
+        None
     """
     global _logging_configured
     if _logging_configured:

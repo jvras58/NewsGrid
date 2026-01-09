@@ -9,6 +9,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """
     Configurações da aplicação carregadas do .env
+
+    Args:
+        None
+    Returns:
+        None
     """
 
     # Configurações de API Keys

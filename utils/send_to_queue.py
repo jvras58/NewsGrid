@@ -7,10 +7,18 @@ import json
 from utils.broker import get_rabbitmq_connection
 from utils.logging import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger("send_to_queue")
 
 
 def send_to_queue(queue_name, data):
+    """Envia uma mensagem para a fila RabbitMQ especificada.
+
+    Args:
+        queue_name (str): Nome da fila para onde a mensagem será enviada.
+        data (dict): Dados a serem enviados na mensagem.
+    Returns:
+        None
+    """
     connection = get_rabbitmq_connection()
     try:
         channel = connection.channel()

@@ -1,5 +1,39 @@
 services:
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uv run uvicorn app.startup:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+      - researcher
+      - analyst
+
+  researcher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uv run worker-researcher
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+  
+  analyst:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uv run worker-analyst
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:

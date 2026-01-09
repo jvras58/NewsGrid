@@ -36,8 +36,9 @@ Siga estes passos simples para configurar o projeto:
 
 4. 🐰 **Execute a Imagem do RabbitMQ** (Obrigatório):
    ```sh
-   docker compose up
+   docker compose up rabbitmq
    ```
+   > Para utilizar todo o projeto dockerizado siga para docs[Usando-Docker](docs\DOCKERIZADO.md)
 
 ## 🚀 Uso
 

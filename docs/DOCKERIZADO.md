@@ -21,7 +21,7 @@ Todos os serviços compartilham a mesma rede Docker, permitindo comunicação in
 
 ## ⚠️ Configuração Importante
 
-Antes de iniciar, certifique-se de que no arquivo `.env`, a variável `RABBITMQ_HOST` esteja definida como `rabbitmq` (o nome do serviço no `compose.yml`), **não como `localhost`**. Isso permite que os serviços `researcher` e `analyst` se comuniquem com o RabbitMQ via rede interna do Docker. 🌐
+Antes de iniciar, certifique-se de que no arquivo `.env`, a variável `RABBITMQ_HOST` esteja definida como `rabbitmq` e `REDIS_HOST` definida como `redis` (Conforme o nome dos serviço no `compose.yml`), **não como `localhost`**. Isso permite que os serviços `researcher` e `analyst` se comuniquem com o RabbitMQ e o Redis via rede interna do Docker. 🌐
 
 Exemplo no `.env`:
 ```

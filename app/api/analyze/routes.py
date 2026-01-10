@@ -22,7 +22,9 @@ async def request_analysis(topic: str = Query(..., description="Tópico para an�
 
 
 @router.get("/report/{task_id}")
-async def get_analysis_report(task_id: str):
+async def get_analysis_report(
+    task_id: str = Query(..., description="ID da tarefa para recuperar o relatório"),
+):
     logger.info(f"Requisição para recuperar relatório de task_id: {task_id}")
     report = get_report(task_id)
     if report:

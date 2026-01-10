@@ -2,7 +2,7 @@
 Lógica de rotas para análise de tópicos.
 """
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Path
 from .controller import request_analysis_logic
 from utils.reporting import get_report
 from utils.logging import get_logger
@@ -23,7 +23,7 @@ async def request_analysis(topic: str = Query(..., description="Tópico para an�
 
 @router.get("/report/{task_id}")
 async def get_analysis_report(
-    task_id: str = Query(..., description="ID da tarefa para recuperar o relatório"),
+    task_id: str = Path(..., description="ID da tarefa para recuperar o relatório"),
 ):
     logger.info(f"Requisição para recuperar relatório de task_id: {task_id}")
     report = get_report(task_id)

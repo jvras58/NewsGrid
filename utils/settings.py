@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     rabbitmq_user: str = "user"
     rabbitmq_password: str = "password"
 
+    # Configurações do Redis
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: Optional[str] = None
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False
     )

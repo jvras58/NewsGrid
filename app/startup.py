@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.analyze.routes import router as analyze_router
+from app.api.auth.routes import router as auth_router
 from utils.settings import settings
 from utils.logging import setup_logging
 
@@ -28,7 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(analyze_router, prefix="/api/v1/analyze", tags=["Analyze"])
 
 

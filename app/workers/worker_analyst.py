@@ -4,7 +4,7 @@ Worker responsável por analisar dados de pesquisa bruta e gerar relatórios exe
 
 import json
 from utils.base_worker import BaseWorker
-from utils.reporting import save_report
+from app.services.report_service import ReportService
 from app.agents.agent_analyst import AnalystAgent
 
 
@@ -31,6 +31,8 @@ class AnalystWorker(BaseWorker):
         raw_research = data["raw_research"]
         task_id = data["task_id"]
 
+        user_id = data.get("user_id")
+
         self.logger.info(f"Analisando dados sobre: {topic}...")
 
         try:
@@ -44,10 +46,12 @@ class AnalystWorker(BaseWorker):
             response = self.agent.run(prompt)
             final_report = response.content
 
-            save_report(task_id, topic, final_report)
+            ReportService.save(
+                task_id=task_id, topic=topic, content=final_report, user_id=user_id
+            )
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            self.logger.info("Análise concluída e arquivada.")
+            self.logger.info("Análise concluída e salva via Service.")
 
         except Exception as e:
             self.logger.error(f"Erro na análise de '{topic}' (task_id: {task_id}): {e}")

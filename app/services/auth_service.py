@@ -66,10 +66,11 @@ class AuthService:
         Este método recupera o conjunto de nomes de usuários armazenados no Redis.
 
         Returns:
-            list: Uma lista de bytes representando os nomes dos usuários registrados.
+            list: Uma lista de strings representando os nomes dos usuários registrados.
         """
         redis = get_redis_client()
-        return list(redis.smembers("auth:users_list"))
+        users = redis.smembers("auth:users_list")
+        return [u.decode("utf-8") if isinstance(u, bytes) else u for u in users]
 
     @staticmethod
     def revoke_user(username: str):
@@ -94,6 +95,9 @@ class AuthService:
 
         if not token:
             raise ValueError("Usuário não encontrado")
+
+        if isinstance(token, bytes):
+            token = token.decode("utf-8")
 
         pipe = redis.pipeline()
         pipe.delete(f"auth:token:{token}")
@@ -157,6 +161,8 @@ class AuthService:
         username = redis.get(f"auth:token:{token}")
         if not username:
             raise ValueError("Token inválido")
+        if isinstance(username, bytes):
+            username = username.decode("utf-8")
         return username
 
     @staticmethod

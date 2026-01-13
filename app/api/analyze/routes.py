@@ -9,9 +9,7 @@ from app.api.auth.controller import verify_session
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-# TODO: Retirar a dependência global para ficar somente nas rotas mesmo!
-router = APIRouter(dependencies=[Depends(verify_session)])
+router = APIRouter()
 
 
 @router.post("/")

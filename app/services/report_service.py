@@ -33,7 +33,7 @@ class ReportService:
         }
 
         pipeline = redis.pipeline()
-        pipeline.set(key, json.dumps(data))
+        pipeline.set(key, json.dumps(data), ex=86400)
 
         if user_id:
             pipeline.sadd(f"user:{user_id}:reports", task_id)

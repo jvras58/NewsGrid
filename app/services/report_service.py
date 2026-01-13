@@ -32,14 +32,18 @@ class ReportService:
             "owner": user_id,
         }
 
-        pipeline = redis.pipeline()
-        pipeline.set(key, json.dumps(data))
+        try:
+            pipeline = redis.pipeline()
+            pipeline.set(key, json.dumps(data))
 
-        if user_id:
-            pipeline.sadd(f"user:{user_id}:reports", task_id)
+            if user_id:
+                pipeline.sadd(f"user:{user_id}:reports", task_id)
 
-        pipeline.execute()
-        logger.info(f"Relatório {task_id} salvo para {user_id}")
+            pipeline.execute()
+            logger.info(f"Relatório {task_id} salvo para {user_id}")
+        except Exception as e:
+            logger.error(f"Erro ao salvar relatório {task_id}: {e}")
+            raise ValueError("Erro ao salvar relatório")
 
     @staticmethod
     def get_by_id(task_id: str, user_id: str = None):

@@ -63,11 +63,17 @@ class ReportService:
 
         report = json.loads(data)
 
-        if user_id and report.get("owner") != user_id:
-            logger.warning(
-                f"Acesso negado: User {user_id} tentou ler report de {report.get('owner')}"
-            )
-            raise ValueError("Acesso negado ao relatório")
+        if report.get("owner"):
+            if not user_id:
+                logger.warning(
+                    f"Acesso negado: Usuário não autenticado tentou ler relatório de {report.get('owner')}"
+                )
+                raise ValueError("Acesso negado ao relatório")
+            elif report.get("owner") != user_id:
+                logger.warning(
+                    f"Acesso negado: User {user_id} tentou ler report de {report.get('owner')}"
+                )
+                raise ValueError("Acesso negado ao relatório")
 
         return report
 

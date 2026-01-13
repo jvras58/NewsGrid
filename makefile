@@ -31,6 +31,10 @@ init_rabbitmq:
 	@echo "Aguardando RabbitMQ iniciar..."
 	ping -n 11 127.0.0.1 >nul
 
+# SEED inicial com user
+seed:
+	set PYTHONPATH=. && uv run python -m scripts.seed_initial
+
 # iniciar os workers separadamente
 worker1:
 	set PYTHONPATH=. && uv run python -m app.workers.worker_researcher
@@ -45,7 +49,7 @@ workers:
 
 # teste
 test-curl:
-	Invoke-WebRequest -Method POST -Uri "http://127.0.0.1:8000/api/v1/analyze?topic=Futuro%20do%20Javascript%20em%202025" -UseBasicParsing
+	powershell -Command "$createResponse = Invoke-WebRequest -Method POST -Uri 'http://localhost:8000/api/v1/auth/create' -Body '{\"username\": \"testuser\"}' -ContentType 'application/json' -UseBasicParsing | ConvertFrom-Json; $token = $createResponse.token; Invoke-WebRequest -Method POST -Uri 'http://localhost:8000/api/v1/analyze/?topic=Bitcoin' -Headers @{'Authorization'='Bearer ' + $token} -UseBasicParsing"
 
 # cobertura de teste
 test-coverage:

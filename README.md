@@ -38,7 +38,7 @@ Siga estes passos simples para configurar o projeto:
    ```sh
    docker compose up rabbitmq
    ```
-   > Para utilizar todo o projeto dockerizado siga para docs[Usando-Docker](docs\DOCKERIZADO.md)
+   > Para utilizar todo o projeto dockerizado siga para docs [Usando-Docker](docs/DOCKERIZADO.md)
 
 ## 🚀 Uso
 
@@ -55,6 +55,15 @@ Siga estes passos simples para configurar o projeto:
    ```sh
    make run
    ```
+
+### 🔐 Autenticação Inicial
+
+Ao iniciar a aplicação pela primeira vez, um usuário administrador padrão é criado automaticamente se nenhum usuário existir.
+
+- **Usuário Padrão:** `admin`
+- **Token Padrão:** `12345678-1234-5678-9012-123456789012`
+
+Use este token para fazer login via `/api/v1/auth/login`. Para mais detalhes, consulte [docs/AUTH.MD](docs/AUTH.MD).
 
 ## 🧪 Testes
 

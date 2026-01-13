@@ -15,23 +15,29 @@ def seed_initial_user():
                      Chave "auth:user:{user}" -> Valor "{token}"
                      Adiciona à "auth:users_list"
     """
-    redis = get_redis_client()
+    try:
+        redis = get_redis_client()
 
-    default_token = settings.default_token
-    user_data = "admin"
+        default_token = settings.default_token
+        user_data = "admin"
 
-    user_key = f"auth:user:{user_data}"
+        user_key = f"auth:user:{user_data}"
 
-    if not redis.exists(user_key):
-        token_key = f"auth:token:{default_token}"
-        pipe = redis.pipeline()
-        pipe.set(token_key, user_data)
-        pipe.set(user_key, default_token)
-        pipe.sadd("auth:users_list", user_data)
-        pipe.execute()
-        logger.info("🔑 Seed de Auth realizado. Usuário padrão configurado no Redis.")
-    else:
-        logger.info("🔑 Usuário padrão já existe no Redis.")
+        if not redis.exists(user_key):
+            token_key = f"auth:token:{default_token}"
+            pipe = redis.pipeline()
+            pipe.set(token_key, user_data)
+            pipe.set(user_key, default_token)
+            pipe.sadd("auth:users_list", user_data)
+            pipe.execute()
+            logger.info(
+                "🔑 Seed de Auth realizado. Usuário padrão configurado no Redis."
+            )
+        else:
+            logger.info("🔑 Usuário padrão já existe no Redis.")
+    except Exception as e:
+        logger.error(f"Erro durante o seed inicial do usuário: {e}")
+        raise
 
 
 if __name__ == "__main__":

@@ -1,15 +1,12 @@
-"""Schemas para operações de autenticação de usuários."""
+"""Schemas para autenticação e sessão."""
 
 from pydantic import BaseModel, Field
 
 
-class UserCreate(BaseModel):
-    username: str = Field(..., description="Nome do usuário (ex: admin)")
-
-    token: str = Field(None, description="Token personalizado (opcional)")
+class LoginRequest(BaseModel):
+    token: str = Field(..., description="O Token de acesso do usuário")
 
 
-class UserResponse(BaseModel):
+class CurrentUserResponse(BaseModel):
     username: str
-    token: str
     status: str

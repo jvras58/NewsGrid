@@ -1,76 +1,51 @@
-"""Controller para operações de autenticação de usuários."""
+"""Controller de Autenticação (Login/Logout)."""
 
-import uuid
-from fastapi import HTTPException, Depends
-from fastapi.security import HTTPBearer
-from utils.redis_client import get_redis_client
+from fastapi import Response, Request, HTTPException
+from app.services.auth_service import AuthService
 from utils.logging import get_logger
 
 logger = get_logger("auth_controller")
 
-security = HTTPBearer()
 
-
-def create_user_logic(username: str, token: str = None):
-    redis = get_redis_client()
-
-    if not token:
-        token = str(uuid.uuid4())
-
-    token_key = f"auth:token:{token}"
-    user_key = f"auth:user:{username}"
-
-    if redis.exists(user_key):
-        raise HTTPException(status_code=400, detail="Usuário já existe")
-
+def login_logic(token: str, response: Response):
     try:
-        redis.set(token_key, username)
+        username = AuthService.authenticate_by_token(token)
 
-        redis.set(user_key, token)
+        session_id = AuthService.create_session(username)
 
-        redis.sadd("auth:users_list", username)
+        response.set_cookie(
+            key="session_id",
+            value=session_id,
+            httponly=True,
+            max_age=86400,
+            samesite="lax",
+            secure=False,  # tODO: Mudar para True em Produção
+        )
 
-        logger.info(f"Novo usuário criado: {username}")
-        return {"username": username, "token": token, "status": "created"}
+        logger.info(f"Login realizado: {username}")
+        return {"message": "Login realizado", "user": username}
 
-    except Exception as e:
-        logger.error(f"Erro ao criar usuário: {e}")
-        raise HTTPException(status_code=500, detail="Erro interno ao salvar usuário")
-
-
-def list_users_logic():
-    redis = get_redis_client()
-    try:
-        users = redis.smembers("auth:users_list")
-        return list(users)
-    except Exception as e:
-        logger.error(f"Erro ao listar usuários: {e}")
-        return []
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
 
-def revoke_user_logic(username: str):
-    """Remove o acesso de um usuário"""
-    redis = get_redis_client()
-    user_key = f"auth:user:{username}"
+def logout_logic(request: Request, response: Response):
+    session_id = request.cookies.get("session_id")
 
-    token = redis.get(user_key)
-    if token:
-        redis.delete(f"auth:token:{token}")
-        redis.delete(user_key)
-        redis.srem("auth:users_list", username)
-        return {"status": "revoked", "username": username}
+    AuthService.delete_session(session_id)
 
-    raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    response.delete_cookie("session_id")
+    return {"message": "Logout realizado"}
 
 
-def verify_token(credentials=Depends(security)):
-    """Verifica o token de autorização e retorna o username."""
-    token = credentials.credentials
+def verify_session(request: Request):
+    """Dependência para proteger rotas."""
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=401, detail="Não autenticado")
 
-    redis = get_redis_client()
-    username = redis.get(f"auth:token:{token}")
-
+    username = AuthService.get_user_by_session(session_id)
     if not username:
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(status_code=401, detail="Sessão expirada")
 
-    return username.decode("utf-8") if isinstance(username, bytes) else username
+    return username

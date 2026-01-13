@@ -54,6 +54,7 @@ class Settings(BaseSettings):
 
     # Configurações de segurança
     secure_cookies: bool = False
+    default_token: str = "newsgrid-secret-123"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False

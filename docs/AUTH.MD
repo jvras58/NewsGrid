@@ -70,7 +70,7 @@ Retorna o usuário autenticado atual.
 
 ### Criar Novo Usuário
 
-**POST** `/api/v1/user/`
+**POST** `/api/v1/users/`
 *Requer sessão ativa (usuário logado).*
 
 **Body:**
@@ -84,14 +84,14 @@ Retorna o usuário autenticado atual.
 
 ### Listar Usuários
 
-**GET** `/api/v1/user/`
+**GET** `/api/v1/users/`
 *Requer sessão ativa.*
 
 Retorna todos os usuários cadastrados no sistema.
 
 ### Revogar Acesso
 
-**DELETE** `/api/v1/user/{username}`
+**DELETE** `/api/v1/users/{username}`
 *Requer sessão ativa.*
 
 Remove imediatamente o acesso do usuário, invalidando o token e sessões ativas.

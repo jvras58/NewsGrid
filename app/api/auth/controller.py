@@ -21,6 +21,7 @@ def login_logic(token: str, response: Response):
             max_age=86400,
             samesite="lax",
             secure=settings.secure_cookies,
+            path="/",
         )
 
         logger.info(f"Login realizado: {username}")

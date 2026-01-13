@@ -1,4 +1,5 @@
 import json
+import pytest
 from unittest.mock import patch, Mock
 from app.services.report_service import ReportService
 
@@ -46,11 +47,8 @@ def test_get_report_not_found(mock_get_client):
     mock_client = Mock()
     mock_client.get.return_value = None
     mock_get_client.return_value = mock_client
-    try:
+    with pytest.raises(ValueError, match="Relatório não encontrado"):
         ReportService.get_by_id("123")
-        assert False, "Deveria ter gerado um ValueError."
-    except ValueError as e:
-        assert str(e) == "Relatório não encontrado"
     mock_client.get.assert_called_once_with("report:123")
 
 
@@ -61,11 +59,8 @@ def test_get_report_access_denied(mock_get_client):
         {"task_id": "123", "topic": "Test", "content": "Data", "owner": "user1"}
     )
     mock_get_client.return_value = mock_client
-    try:
+    with pytest.raises(ValueError, match="Acesso negado ao relatório"):
         ReportService.get_by_id("123", user_id="user2")
-        assert False, "Deveria ter gerado um ValueError."
-    except ValueError as e:
-        assert str(e) == "Acesso negado ao relatório"
 
 
 @patch("app.services.report_service.get_redis_client")

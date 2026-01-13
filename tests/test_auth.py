@@ -45,18 +45,10 @@ def test_get_current_user(authenticated_client, mock_username):
     assert data == {"username": "test_user", "status": "authenticated"}
 
 
-# ============ Testes para fluxo híbrido (Cookie + Bearer Token) ============
-
-
 @patch("app.api.auth.controller.AuthService.get_user_by_session")
 def test_get_current_user_via_cookie(mock_get_session, client):
-    """
-    Testa get_current_user com autenticação via cookie.
-    Justificativa: Validar que navegadores podem autenticar com session_id cookie.
-    """
     mock_get_session.return_value = "cookie_user"
 
-    # Simula requisição com cookie
     client.cookies.set("session_id", "valid_session_123")
     response = client.get("/api/v1/auth/me")
 
@@ -69,13 +61,8 @@ def test_get_current_user_via_cookie(mock_get_session, client):
 
 @patch("app.services.auth_service.AuthService.authenticate_by_token")
 def test_get_current_user_via_bearer_token(mock_auth_token, client):
-    """
-    Testa get_current_user com autenticação via Bearer token.
-    Justificativa: Validar que APIs/scripts podem autenticar com Bearer token no header.
-    """
     mock_auth_token.return_value = "bearer_user"
 
-    # Simula requisição com Bearer token
     headers = {"Authorization": "Bearer valid_token_123"}
     response = client.get("/api/v1/auth/me", headers=headers)
 
@@ -91,24 +78,17 @@ def test_get_current_user_via_bearer_token(mock_auth_token, client):
 def test_get_current_user_prefers_cookie_over_token(
     mock_auth_token, mock_get_session, client
 ):
-    """
-    Testa que get_current_user prioriza cookie sobre Bearer token.
-    Justificativa: Garantir que se ambos estiverem presentes, cookie tem precedência.
-    """
     mock_get_session.return_value = "cookie_user"
     mock_auth_token.return_value = "bearer_user"
 
-    # Simula requisição com AMBOS cookie e Bearer token
     client.cookies.set("session_id", "valid_session_123")
     headers = {"Authorization": "Bearer valid_token_123"}
     response = client.get("/api/v1/auth/me", headers=headers)
 
     assert response.status_code == 200
     data = response.json()
-    # Deve retornar o usuário do cookie, não do token
     assert data["username"] == "cookie_user"
     mock_get_session.assert_called_once()
-    # authenticate_by_token não deve ser chamado pois cookie foi bem-sucedido
     mock_auth_token.assert_not_called()
 
 

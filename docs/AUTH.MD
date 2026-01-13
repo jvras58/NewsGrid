@@ -30,7 +30,7 @@ uv run python -m scripts.seed_initial
 Isso cria o usuário padrão no Redis se ele não existir.
 
 * **Usuário Padrão:** `admin`
-* **Token Padrão:** `newsgrid-secret-123` (Configurável via `settings.default_token` pelo `.env`)
+* **Token Padrão:** `12345678-1234-5678-9012-123456789012` (Configurável via `settings.default_token` pelo `.env`)
 
 ### 2. Processo de Autenticação
 1. **Login:** Envie uma requisição POST para `/api/v1/auth/login` com o token no body.
@@ -49,7 +49,7 @@ Isso cria o usuário padrão no Redis se ele não existir.
 
 ```json
 {
-  "token": "newsgrid-secret-123"
+  "token": "12345678-1234-5678-9012-123456789012"
 }
 ```
 
@@ -140,7 +140,7 @@ Isso garante que cada usuário tenha acesso apenas/historicamente aos seus próp
 ```bash
 curl -X POST "http://localhost:8000/api/v1/auth/login" \
      -H "Content-Type: application/json" \
-     -d '{"token": "newsgrid-secret-123"}' \
+     -d '{"token": "12345678-1234-5678-9012-123456789012"}' \
      -c cookies.txt
 ```
 

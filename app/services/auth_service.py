@@ -1,6 +1,7 @@
 """Serviço central para autenticação e gestão de usuários no Redis."""
 
 import uuid
+from redis.exceptions import WatchError
 from utils.redis_client import get_redis_client
 from utils.logging import get_logger
 
@@ -17,14 +18,21 @@ class AuthService:
         token_key = f"auth:token:{token}"
         user_key = f"auth:user:{username}"
 
-        if redis.exists(user_key):
-            raise ValueError("Usuário já existe")
-
-        pipe = redis.pipeline()
-        pipe.set(token_key, username)
-        pipe.set(user_key, token)
-        pipe.sadd("auth:users_list", username)
-        pipe.execute()
+        with redis.pipeline() as pipe:
+            while True:
+                try:
+                    pipe.watch(user_key)
+                    if pipe.exists(user_key):
+                        pipe.unwatch()
+                        raise ValueError("Usuário já existe")
+                    pipe.multi()
+                    pipe.set(token_key, username)
+                    pipe.set(user_key, token)
+                    pipe.sadd("auth:users_list", username)
+                    pipe.execute()
+                    break
+                except WatchError:
+                    continue
 
         logger.info(f"Usuário criado: {username}")
         return {"username": username, "token": token, "status": "created"}

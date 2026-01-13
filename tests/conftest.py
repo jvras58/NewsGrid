@@ -1,12 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.startup import app
-from app.api.auth.controller import verify_token
+from app.api.auth.controller import verify_session
 
 
 @pytest.fixture
 def client():
-    app.dependency_overrides[verify_token] = lambda: "test_user"
+    app.dependency_overrides[verify_session] = lambda: "test_user"
     return TestClient(app)
 
 

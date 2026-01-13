@@ -1,7 +1,8 @@
 """Schemas para gestão de usuários."""
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Annotated
+from uuid import UUID
 
 
 class UserCreate(BaseModel):
@@ -13,13 +14,14 @@ class UserCreate(BaseModel):
         description="Nome do usuário (único)",
     )
 
-    token: Optional[str] = Field(
-        None,
-        min_length=36,
-        max_length=36,
-        pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-        description="Token personalizado opcional no formato UUID (ex: 12345678-1234-5678-9012-123456789012)",
-    )
+    token: Optional[
+        Annotated[
+            UUID,
+            Field(
+                description="Token personalizado opcional no formato UUID válido (ex: 12345678-1234-5678-9012-123456789012)"
+            ),
+        ]
+    ] = None
 
 
 class UserResponse(BaseModel):

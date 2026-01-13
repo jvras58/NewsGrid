@@ -3,6 +3,7 @@
 from fastapi import Response, Request, HTTPException
 from app.services.auth_service import AuthService
 from utils.logging import get_logger
+from utils.settings import settings
 
 logger = get_logger("auth_controller")
 
@@ -19,7 +20,7 @@ def login_logic(token: str, response: Response):
             httponly=True,
             max_age=86400,
             samesite="lax",
-            secure=False,  # tODO: Mudar para True em Produção
+            secure=settings.secure_cookies,
         )
 
         logger.info(f"Login realizado: {username}")

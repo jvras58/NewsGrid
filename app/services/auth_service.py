@@ -18,8 +18,9 @@ class AuthService:
         token_key = f"auth:token:{token}"
         user_key = f"auth:user:{username}"
 
+        max_retries = 5
         with redis.pipeline() as pipe:
-            while True:
+            for attempt in range(max_retries):
                 try:
                     pipe.watch(user_key)
                     if pipe.exists(user_key):
@@ -32,6 +33,10 @@ class AuthService:
                     pipe.execute()
                     break
                 except WatchError:
+                    if attempt == max_retries - 1:
+                        raise ValueError(
+                            "Falha ao criar usuário devido a contenção alta no Redis após múltiplas tentativas"
+                        )
                     continue
 
         logger.info(f"Usuário criado: {username}")

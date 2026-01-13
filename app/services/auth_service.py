@@ -121,6 +121,8 @@ class AuthService:
         """Valida a sessão e retorna o usuário."""
         redis = get_redis_client()
         username = redis.get(f"session:{session_id}")
+        if username and isinstance(username, bytes):
+            username = username.decode("utf-8")
         return username
 
     @staticmethod

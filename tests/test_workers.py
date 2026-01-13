@@ -36,7 +36,7 @@ def test_research_worker_process_message(mock_send, mock_agent_class, mock_conne
 
 @patch("utils.broker.get_rabbitmq_connection")
 @patch("app.workers.worker_analyst.AnalystAgent")
-@patch("app.workers.worker_analyst.save_report")
+@patch("app.workers.worker_analyst.ReportService.save")
 def test_analyst_worker_process_message(mock_save, mock_agent_class, mock_connection):
     mock_agent = Mock()
     mock_agent.run.return_value = Mock(content="Mocked report")
@@ -49,5 +49,7 @@ def test_analyst_worker_process_message(mock_save, mock_agent_class, mock_connec
         {"topic": "Test", "raw_research": "Data", "task_id": "123"}
     ).encode()
     worker.process_message(ch, method, properties, body)
-    mock_save.assert_called_once_with("123", "Test", "Mocked report")
+    mock_save.assert_called_once_with(
+        task_id="123", topic="Test", content="Mocked report", user_id=None
+    )
     ch.basic_ack.assert_called_once()

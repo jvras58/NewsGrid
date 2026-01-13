@@ -5,23 +5,31 @@ from unittest.mock import patch
 def test_create_user_success(mock_create, client):
     mock_create.return_value = {
         "username": "newuser",
-        "token": "token123",
+        "token": "12345678-1234-5678-9012-123456789012",
         "status": "created",
     }
     response = client.post(
-        "/api/v1/users/", json={"username": "newuser", "token": "token123"}
+        "/api/v1/users/",
+        json={"username": "newuser", "token": "12345678-1234-5678-9012-123456789012"},
     )
     assert response.status_code == 200
     data = response.json()
-    assert data == {"username": "newuser", "token": "token123", "status": "created"}
-    mock_create.assert_called_once_with("newuser", "token123")
+    assert data == {
+        "username": "newuser",
+        "token": "12345678-1234-5678-9012-123456789012",
+        "status": "created",
+    }
+    mock_create.assert_called_once_with(
+        "newuser", "12345678-1234-5678-9012-123456789012"
+    )
 
 
 @patch("app.api.user.controller.AuthService.create_user")
 def test_create_user_failure(mock_create, client):
     mock_create.side_effect = ValueError("Usuário já existe")
     response = client.post(
-        "/api/v1/users/", json={"username": "existing", "token": "token123"}
+        "/api/v1/users/",
+        json={"username": "existing", "token": "12345678-1234-5678-9012-123456789012"},
     )
     assert response.status_code == 400
     data = response.json()

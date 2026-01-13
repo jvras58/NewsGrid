@@ -36,7 +36,13 @@ def logout_logic(request: Request, response: Response):
 
     AuthService.delete_session(session_id)
 
-    response.delete_cookie("session_id")
+    response.delete_cookie(
+        key="session_id",
+        path="/",
+        samesite="lax",
+        secure=settings.secure_cookies,
+        httponly=True,
+    )
     return {"message": "Logout realizado"}
 
 

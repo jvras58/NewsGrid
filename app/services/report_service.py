@@ -1,6 +1,7 @@
 """Serviço para manipulação de relatórios no Redis."""
 
 import json
+from typing import Optional
 from utils.redis_client import get_redis_client
 from utils.logging import get_logger
 
@@ -9,7 +10,7 @@ logger = get_logger("report_service")
 
 class ReportService:
     @staticmethod
-    def save(task_id: str, topic: str, content: str, user_id: str = None):
+    def save(task_id: str, topic: str, content: str, user_id: Optional[str] = None):
         """Usado pelo Worker para salvar"""
         if not task_id or not isinstance(task_id, str):
             raise ValueError("task_id deve ser uma string não vazia")
@@ -17,9 +18,7 @@ class ReportService:
             raise ValueError("topic deve ser uma string não vazia")
         if not content or not isinstance(content, str):
             raise ValueError("content deve ser uma string não vazia")
-        if user_id is not None and (
-            not isinstance(user_id, str) or not user_id.strip()
-        ):
+        if user_id is not None and not user_id.strip():
             raise ValueError("user_id deve ser uma string não vazia ou None")
 
         redis = get_redis_client()
@@ -46,13 +45,11 @@ class ReportService:
             raise ValueError("Erro ao salvar relatório")
 
     @staticmethod
-    def get_by_id(task_id: str, user_id: str = None):
+    def get_by_id(task_id: str, user_id: Optional[str] = None):
         """Usado pela API para mostrar detalhes"""
         if not task_id or not isinstance(task_id, str):
             raise ValueError("task_id deve ser uma string não vazia")
-        if user_id is not None and (
-            not isinstance(user_id, str) or not user_id.strip()
-        ):
+        if user_id is not None and not user_id.strip():
             raise ValueError("user_id deve ser uma string não vazia ou None")
 
         redis = get_redis_client()

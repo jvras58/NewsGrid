@@ -38,7 +38,7 @@ Siga estes passos simples para configurar o projeto:
    ```sh
    docker compose up rabbitmq
    ```
-   > Para utilizar todo o projeto dockerizado siga para docs[Usando-Docker](docs\DOCKERIZADO.md)
+   > Para utilizar todo o projeto dockerizado siga para docs [Usando-Docker](docs/DOCKERIZADO.md)
 
 ## 🚀 Uso
 

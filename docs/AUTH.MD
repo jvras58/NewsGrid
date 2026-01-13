@@ -1,17 +1,18 @@
 # 🔐 Autenticação e Segurança - NewsGrid
 
-Este documento descreve o funcionamento do sistema de autenticação via Token implementado no NewsGrid, utilizando Redis como fonte de verdade.
+Este documento descreve o funcionamento do sistema de autenticação via Sessões implementado no NewsGrid, utilizando Redis como fonte de verdade.
 
 ## 🧠 Arquitetura
 
-O sistema utiliza uma estratégia de **API Key no Header**. Não há sessões ou cookies; cada requisição deve ser autenticada individualmente.
+O sistema utiliza uma estratégia de **Sessões com Cookies**. Após o login, uma sessão é criada e armazenada em um cookie seguro. As rotas protegidas verificam a validade da sessão automaticamente.
 
 ### Fluxo de Validação
-1.  **Cliente** envia uma requisição com o header `Authorization: Bearer <token>`.
-2.  **API (FastAPI)** intercepta a requisição via dependência `verify_token`.
-3.  **Redis** é consultado na chave `auth:token:{token_recebido}`.
-4.  **Se Válido:** O Redis retorna o `username` associado. A API permite o acesso e injeta o usuário no contexto.
-5.  **Se Inválido:** A API retorna `401 Unauthorized` ou `403 Forbidden`.
+1. **Cliente** faz login enviando o token via POST para `/api/v1/auth/login`.
+2. **API (FastAPI)** valida o token, cria uma sessão no Redis e define um cookie `session_id`.
+3. **Para rotas protegidas:** A API verifica o cookie `session_id` via dependência `verify_session`.
+4. **Redis** é consultado na chave `session:{session_id}`.
+5. **Se Válido:** O Redis retorna o `username` associado. A API permite o acesso e injeta o usuário no contexto.
+6. **Se Inválido:** A API retorna `401 Unauthorized`.
 
 ---
 
@@ -23,21 +24,54 @@ Ao iniciar a aplicação pela primeira vez, o sistema cria automaticamente um us
 * **Usuário Padrão:** `admin`
 * **Token Padrão:** `newsgrid-secret-123` (Configurável via código/env)
 
-### 2. Cabeçalho Obrigatório
-Todas as rotas protegidas exigem o seguinte cabeçalho HTTP:
-
-```http
-Authorization: Bearer <SEU_TOKEN_AQUI>
-```
+### 2. Processo de Autenticação
+1. **Login:** Envie uma requisição POST para `/api/v1/auth/login` com o token no body.
+2. **Uso:** O navegador/cliente mantém o cookie automaticamente para requisições subsequentes.
+3. **Logout:** Envie uma requisição POST para `/api/v1/auth/logout` para encerrar a sessão.
 
 ---
 
 ## 📡 Endpoints de Autenticação
 
+### Login
+
+**POST** `/api/v1/auth/login`
+
+**Body:**
+
+```json
+{
+  "token": "newsgrid-secret-123"
+}
+```
+
+**Resposta de Sucesso:**
+
+```json
+{
+  "message": "Login realizado",
+  "user": "admin"
+}
+```
+
+Define um cookie `session_id` que expira em 24 horas.
+
+### Logout
+
+**POST** `/api/v1/auth/logout`
+
+Remove o cookie `session_id` e invalida a sessão no Redis.
+
+### Verificar Usuário Atual
+
+**GET** `/api/v1/auth/me`
+
+Retorna o usuário autenticado atual.
+
 ### Criar Novo Usuário
 
-**POST** `/api/v1/auth/create`
-*Requer token de um usuário existente (ou do admin).*
+**POST** `/api/v1/user/`
+*Requer sessão ativa (usuário logado).*
 
 **Body:**
 
@@ -50,13 +84,17 @@ Authorization: Bearer <SEU_TOKEN_AQUI>
 
 ### Listar Usuários
 
-**GET** `/api/v1/auth/list`
-*Retorna todos os usuários cadastrados no sistema.*
+**GET** `/api/v1/user/`
+*Requer sessão ativa.*
+
+Retorna todos os usuários cadastrados no sistema.
 
 ### Revogar Acesso
 
-**DELETE** `/api/v1/auth/revoke/{username}`
-*Remove imediatamente o acesso do usuário, invalidando o token.*
+**DELETE** `/api/v1/user/{username}`
+*Requer sessão ativa.*
+
+Remove imediatamente o acesso do usuário, invalidando o token e sessões ativas.
 
 ---
 
@@ -69,6 +107,7 @@ Para manter a organização, utilizamos *Namespacing* nas chaves do Redis:
 | **Token** | `auth:token:{token}` | `auth:token:abc-123` | Guarda o `username` dono do token. |
 | **Usuário** | `auth:user:{username}` | `auth:user:admin` | Guarda o `token` atual do usuário (lookup reverso). |
 | **Lista** | `auth:users_list` | `auth:users_list` | Set contendo todos os usernames ativos. |
+| **Sessão** | `session:{session_id}` | `session:uuid-123` | Guarda o `username` associado à sessão (expira em 24h). |
 | **Relatórios** | `user:{username}:reports` | `user:admin:reports` | Set contendo IDs dos relatórios gerados pelo usuário. |
 
 ---
@@ -84,15 +123,41 @@ Isso garante que cada usuário tenha acesso apenas/historicamente aos seus próp
 
 ---
 
-### 2. Como fazer a requisição agora (Exemplos Práticos)
+## 📋 Exemplos Práticos
 
-Como agora a porta está trancada, você precisa passar a chave (`Authorization: Bearer <token>`) em toda chamada.
+### Usando cURL (Terminal)
 
-#### Usando cURL (Terminal)
+#### 1. Fazer Login
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/login" \
+     -H "Content-Type: application/json" \
+     -d '{"token": "newsgrid-secret-123"}' \
+     -c cookies.txt
+```
+
+Isso salva o cookie em `cookies.txt`.
+
+#### 2. Fazer uma Requisição Protegida (usando o cookie)
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/analyze/?topic=Inteligencia%20Artificial" \
      -H "accept: application/json" \
-     -H "Authorization: Bearer newsgrid-secret-123" \
+     -b cookies.txt \
      -d ""
+```
+
+#### 3. Verificar Usuário Logado
+
+```bash
+curl -X GET "http://localhost:8000/api/v1/auth/me" \
+     -b cookies.txt
+```
+
+#### 4. Logout
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/logout" \
+     -b cookies.txt \
+     -c cookies.txt
 ```

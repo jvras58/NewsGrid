@@ -56,6 +56,15 @@ Siga estes passos simples para configurar o projeto:
    make run
    ```
 
+### 🔐 Autenticação Inicial
+
+Ao iniciar a aplicação pela primeira vez, um usuário administrador padrão é criado automaticamente se nenhum usuário existir.
+
+- **Usuário Padrão:** `admin`
+- **Token Padrão:** `12345678-1234-5678-9012-123456789012`
+
+Use este token para fazer login via `/api/v1/auth/login`. Para mais detalhes, consulte [docs/AUTH.MD](docs/AUTH.MD).
+
 ## 🧪 Testes
 
 O projeto inclui uma suíte de testes automatizados para garantir a qualidade e integridade do código. Execute os testes com:

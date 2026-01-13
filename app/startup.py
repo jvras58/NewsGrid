@@ -4,14 +4,27 @@ FastAPI Application Entry Point
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from app.api.analyze.routes import router as analyze_router
 from app.api.auth.routes import router as auth_router
 from app.api.user.routes import router as users_router
 from utils.settings import settings
 from utils.logging import setup_logging
+from scripts.seed_initial import seed_initial_user
+from app.services.auth_service import AuthService
 
 setup_logging()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    users = AuthService.list_users()
+    if not users:
+        seed_initial_user()
+    yield
+    pass
+
 
 app = FastAPI(
     title=settings.api_title,
@@ -20,6 +33,7 @@ app = FastAPI(
     debug=settings.debug,
     docs_url=settings.docs_url,
     redoc_url=settings.redoc_url,
+    lifespan=lifespan,
 )
 
 app.add_middleware(

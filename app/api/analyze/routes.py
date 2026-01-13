@@ -34,8 +34,10 @@ async def get_analysis_report(
         report = ReportService.get_by_id(task_id, user_id=username)
         return report
     except ValueError as e:
-        logger.warning(f"Erro ao buscar relatório: {e}")
-        raise HTTPException(status_code=404, detail=str(e))
+        error_message = str(e)
+        logger.warning(f"Erro ao buscar relatório: {error_message}")
+        status_code = 403 if "acesso negado" in error_message.lower() else 404
+        raise HTTPException(status_code=status_code, detail=error_message)
 
 
 @router.get("/my-reports")

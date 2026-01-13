@@ -110,6 +110,8 @@ class AuthService:
     @staticmethod
     def create_session(username: str):
         """Gera um ID de sessão e salva no Redis."""
+        if not username or not isinstance(username, str) or username.strip() == "":
+            raise ValueError("Username inválido")
         redis = get_redis_client()
         session_id = str(uuid.uuid4())
 
@@ -119,6 +121,12 @@ class AuthService:
     @staticmethod
     def get_user_by_session(session_id: str):
         """Valida a sessão e retorna o usuário."""
+        if not session_id or not isinstance(session_id, str):
+            raise ValueError("Session ID inválido")
+        try:
+            uuid.UUID(session_id)
+        except ValueError:
+            raise ValueError("Session ID inválido")
         redis = get_redis_client()
         username = redis.get(f"session:{session_id}")
         if username and isinstance(username, bytes):

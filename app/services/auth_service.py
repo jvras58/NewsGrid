@@ -100,7 +100,7 @@ class AuthService:
         pipe.delete(user_key)
         pipe.srem("auth:users_list", username)
         try:
-            session_keys = redis.keys("session:*")
+            session_keys = list(redis.scan_iter("session:*"))
         except Exception as e:
             logger.error(
                 f"Erro ao buscar sessões para revogação de usuário {username}: {e}"

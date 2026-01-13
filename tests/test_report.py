@@ -21,6 +21,7 @@ def test_save_report(mock_get_client):
                 "owner": None,
             }
         ),
+        ex=86400,
     )
     mock_pipeline.execute.assert_called_once()
 

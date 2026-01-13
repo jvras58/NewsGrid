@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.api.users.schemas import UserCreate, UserResponse
+from app.api.user.schemas import UserCreate, UserResponse
 from app.api.user.controller import (
     create_user_logic,
     list_users_logic,

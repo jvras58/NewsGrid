@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from uuid import UUID
 
 
 @patch("app.api.user.controller.AuthService.create_user")
@@ -20,7 +21,7 @@ def test_create_user_success(mock_create, authenticated_client):
         "status": "created",
     }
     mock_create.assert_called_once_with(
-        "newuser", "12345678-1234-5678-9012-123456789012"
+        "newuser", UUID("12345678-1234-5678-9012-123456789012")
     )
 
 

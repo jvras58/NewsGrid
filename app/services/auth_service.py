@@ -55,6 +55,12 @@ class AuthService:
     @staticmethod
     def authenticate_by_token(token: str):
         """Verifica se o token existe e retorna o username."""
+        if not token or not isinstance(token, str):
+            raise ValueError("Token inválido")
+        try:
+            uuid.UUID(token)
+        except ValueError:
+            raise ValueError("Token inválido")
         redis = get_redis_client()
         username = redis.get(f"auth:token:{token}")
         if not username:

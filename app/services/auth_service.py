@@ -11,6 +11,22 @@ logger = get_logger("auth_service")
 class AuthService:
     @staticmethod
     def create_user(username: str, token: str = None):
+        """
+        Cria um novo usuário no Redis com o nome de usuário fornecido e um token opcional.
+
+        Este método gera um token UUID se não for fornecido, e armazena as associações no Redis de forma atômica
+        usando pipeline e watch para evitar conflitos em caso de criação simultânea.
+
+        Args:
+            username (str): O nome do usuário a ser criado. Deve ser único.
+            token (str, optional): O token de autenticação. Se não fornecido, um UUID é gerado automaticamente.
+
+        Returns:
+            dict: Um dicionário contendo 'username', 'token' e 'status' indicando que o usuário foi criado.
+
+        Raises:
+            ValueError: Se o usuário já existir ou se houver falha após múltiplas tentativas devido a contenção alta no Redis.
+        """
         redis = get_redis_client()
         if not token:
             token = str(uuid.uuid4())
@@ -44,11 +60,34 @@ class AuthService:
 
     @staticmethod
     def list_users():
+        """
+        Lista todos os usuários registrados no sistema.
+
+        Este método recupera o conjunto de nomes de usuários armazenados no Redis.
+
+        Returns:
+            list: Uma lista de bytes representando os nomes dos usuários registrados.
+        """
         redis = get_redis_client()
         return list(redis.smembers("auth:users_list"))
 
     @staticmethod
     def revoke_user(username: str):
+        """
+        Revoga um usuário, removendo seu token, chave de usuário e todas as sessões associadas.
+
+        Este método deleta as chaves relacionadas ao usuário no Redis, incluindo token, dados do usuário,
+        remoção da lista de usuários e limpeza de sessões ativas.
+
+        Args:
+            username (str): O nome do usuário a ser revogado.
+
+        Returns:
+            dict: Um dicionário contendo 'status' ('revoked') e 'username'.
+
+        Raises:
+            ValueError: Se o usuário não for encontrado.
+        """
         redis = get_redis_client()
         user_key = f"auth:user:{username}"
         token = redis.get(user_key)
@@ -94,7 +133,20 @@ class AuthService:
 
     @staticmethod
     def authenticate_by_token(token: str):
-        """Verifica se o token existe e retorna o username."""
+        """
+        Autentica um usuário pelo token fornecido, verificando sua validade e existência.
+
+        Este método valida o formato do token como UUID e busca o nome de usuário associado no Redis.
+
+        Args:
+            token (str): O token de autenticação a ser verificado.
+
+        Returns:
+            str: O nome do usuário associado ao token.
+
+        Raises:
+            ValueError: Se o token for inválido (formato incorreto ou não existir no Redis).
+        """
         if not token or not isinstance(token, str):
             raise ValueError("Token inválido")
         try:
@@ -109,7 +161,20 @@ class AuthService:
 
     @staticmethod
     def create_session(username: str):
-        """Gera um ID de sessão e salva no Redis."""
+        """
+        Cria uma nova sessão para o usuário fornecido, gerando um ID único e armazenando no Redis.
+
+        A sessão é definida para expirar após 24 horas (86400 segundos).
+
+        Args:
+            username (str): O nome do usuário para o qual a sessão será criada.
+
+        Returns:
+            str: O ID da sessão gerada.
+
+        Raises:
+            ValueError: Se o username for inválido (vazio ou não string).
+        """
         if not username or not isinstance(username, str) or username.strip() == "":
             raise ValueError("Username inválido")
         redis = get_redis_client()
@@ -120,7 +185,20 @@ class AuthService:
 
     @staticmethod
     def get_user_by_session(session_id: str):
-        """Valida a sessão e retorna o usuário."""
+        """
+        Recupera o nome do usuário associado ao ID de sessão fornecido, validando a sessão.
+
+        Este método verifica se a sessão existe no Redis e retorna o usuário correspondente.
+
+        Args:
+            session_id (str): O ID da sessão a ser validada.
+
+        Returns:
+            str or None: O nome do usuário se a sessão for válida e existir, caso contrário None.
+
+        Raises:
+            ValueError: Se o session_id for inválido (formato incorreto).
+        """
         if not session_id or not isinstance(session_id, str):
             raise ValueError("Session ID inválido")
         try:
@@ -135,7 +213,14 @@ class AuthService:
 
     @staticmethod
     def delete_session(session_id: str):
-        """Remove a sessão do Redis."""
+        """
+        Remove a sessão do Redis pelo ID fornecido.
+
+        Este método deleta a chave da sessão no Redis, efetivamente encerrando a sessão.
+
+        Args:
+            session_id (str): O ID da sessão a ser removida. Se None ou vazio, nenhuma ação é tomada.
+        """
         if session_id:
             redis = get_redis_client()
             redis.delete(f"session:{session_id}")

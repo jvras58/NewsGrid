@@ -58,6 +58,8 @@ def revoke_user_logic(username: str):
         redis.delete(f"auth:token:{token}")
         redis.delete(user_key)
         redis.srem("auth:users_list", username)
+        # Remove também os relatórios associados ao usuário para evitar vazamento de dados
+        redis.delete(f"user:{username}:reports")
         return {"status": "revoked", "username": username}
 
     raise HTTPException(status_code=404, detail="Usuário não encontrado")

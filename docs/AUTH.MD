@@ -70,6 +70,12 @@ Define um cookie `session_id` que expira em 24 horas.
 
 Remove o cookie `session_id` e invalida a sessão no Redis.
 
+### Renovação e Expiração de Sessões
+
+- **Expiração:** Sessões expiram automaticamente após 24 horas de inatividade para garantir segurança.
+- **Relatórios:** Relatórios criados durante a sessão permanecem associados ao usuário no Redis e podem ser acessados após um novo login. Eles não são afetados pela expiração da sessão.
+- **Renovação:** Não há extensão automática de sessões. Para renovar o acesso, o usuário deve fazer login novamente via `/api/v1/auth/login`. Isso cria uma nova sessão e define um novo cookie.
+
 ### Verificar Usuário Atual
 
 **GET** `/api/v1/auth/me`

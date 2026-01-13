@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Response, Request, Depends
 from app.api.auth.schemas import LoginRequest
-from app.api.auth.controller import login_logic, logout_logic, verify_session
+from app.api.auth.controller import (
+    login_logic,
+    logout_logic,
+    get_current_user,
+)
 
 router = APIRouter()
 
@@ -18,6 +22,6 @@ async def logout(response: Response, request: Request):
 
 
 @router.get("/me")
-async def get_current_user(username: str = Depends(verify_session)):
-    """Verifica quem está logado."""
+async def get_authenticated_user(username: str = Depends(get_current_user)):
+    """Verifica quem está logado (suporta cookie e Bearer token)."""
     return {"username": username, "status": "authenticated"}

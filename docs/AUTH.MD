@@ -1,18 +1,53 @@
 # 🔐 Autenticação e Segurança - NewsGrid
 
-Este documento descreve o funcionamento do sistema de autenticação via Sessões implementado no NewsGrid, utilizando Redis como fonte de verdade.
+Este documento descreve o funcionamento do sistema de autenticação **híbrida** implementado no NewsGrid, utilizando Redis como fonte de verdade.
 
 ## 🧠 Arquitetura
 
-O sistema utiliza uma estratégia de **Sessões com Cookies**. Após o login, uma sessão é criada e armazenada em um cookie seguro. As rotas protegidas verificam a validade da sessão automaticamente.
+O sistema utiliza uma estratégia de **Autenticação Híbrida** que suporta dois métodos simultâneos:
+- **Navegadores:** Autenticação via Cookies de sessão (`session_id`)
+- **APIs/Scripts:** Autenticação via Bearer Tokens no header `Authorization: Bearer <token>`
 
-### Fluxo de Validação
+Isso permite que tanto aplicações web (navegadores) quanto scripts/APIs utilizem o mesmo sistema de forma natural.
+
+### Fluxo de Validação Híbrida
+
+A função `get_current_user()` verifica a autenticação com a seguinte prioridade:
+
+```
+Requisição da API
+        ↓
+┌─────────────────────────────────┐
+│  get_current_user()             │
+└─────────────────────────────────┘
+        ↓
+    ┌───────────────────────┐
+    │ Tenta Cookie?         │
+    └───────────────────────┘
+    /                       \
+  SIM                       NÃO
+  ↓                         ↓
+Valida via              ┌───────────────────────┐
+AuthService            │ Tenta Bearer Token?   │
+.get_user_by_session() └───────────────────────┘
+  ✓ Retorna             /                       \
+                      SIM                       NÃO
+                      ↓                         ↓
+                  Valida via               ❌ HTTPException
+              AuthService                 (401 Unauthorized)
+              .authenticate_by_token()
+                ✓ Retorna
+```
+
+**Detalhes do fluxo:**
 1. **Cliente** faz login enviando o token via POST para `/api/v1/auth/login`.
-2. **API (FastAPI)** valida o token, cria uma sessão no Redis e define um cookie `session_id`.
-3. **Para rotas protegidas:** A API verifica o cookie `session_id` via dependência `verify_session`.
-4. **Redis** é consultado na chave `session:{session_id}`.
-5. **Se Válido:** O Redis retorna o `username` associado. A API permite o acesso e injeta o usuário no contexto.
-6. **Se Inválido:** A API retorna `401 Unauthorized`.
+2. **API (FastAPI)** valida o token e:
+   - Cria uma sessão no Redis e define um cookie `session_id` (para navegadores)
+   - Retorna o token autenticado (para APIs)
+3. **Para rotas protegidas:** A API verifica automaticamente via `get_current_user()` em ordem:
+   1. Primeiro tenta validar o cookie `session_id` via Redis
+   2. Se não encontrado, tenta validar o Bearer token
+   3. Se nenhum método funcionar, retorna `401 Unauthorized`
 
 ---
 
@@ -33,9 +68,16 @@ Isso cria o usuário padrão no Redis se ele não existir.
 * **Token Padrão:** `12345678-1234-5678-9012-123456789012` (Configurável via `settings.default_token` pelo `.env`)
 
 ### 2. Processo de Autenticação
+
+#### Via Navegador (Cookie)
 1. **Login:** Envie uma requisição POST para `/api/v1/auth/login` com o token no body.
-2. **Uso:** O navegador/cliente mantém o cookie automaticamente para requisições subsequentes.
+2. **Uso:** O navegador mantém o cookie `session_id` automaticamente para requisições subsequentes.
 3. **Logout:** Envie uma requisição POST para `/api/v1/auth/logout` para encerrar a sessão.
+
+#### Via API/Script (Bearer Token)
+1. **Obtenha o token:** Faça login em `/api/v1/auth/login` com seu token de autenticação.
+2. **Uso:** Inclua o token no header `Authorization: Bearer <seu_token>` em todas as requisições.
+3. **Sem logout:** Tokens não precisam de logout; expiram naturalmente com a sessão do usuário.
 
 ---
 
@@ -72,9 +114,10 @@ Remove o cookie `session_id` e invalida a sessão no Redis.
 
 ### Renovação e Expiração de Sessões
 
-- **Expiração:** Sessões expiram automaticamente após 24 horas de inatividade para garantir segurança.
+- **Expiração de Sessão:** Sessões (cookies) expiram automaticamente após 24 horas de inatividade para garantir segurança.
+- **Expiração de Token:** Tokens Bearer expiram com a sessão associada ao usuário.
 - **Relatórios:** Relatórios criados durante a sessão permanecem associados ao usuário no Redis e podem ser acessados após um novo login. Eles não são afetados pela expiração da sessão.
-- **Renovação:** Não há extensão automática de sessões. Para renovar o acesso, o usuário deve fazer login novamente via `/api/v1/auth/login`. Isso cria uma nova sessão e define um novo cookie.
+- **Renovação:** Não há extensão automática de sessões. Para renovar o acesso, o usuário deve fazer login novamente via `/api/v1/auth/login`. Isso cria uma nova sessão e define um novo cookie/token.
 
 ### Verificar Usuário Atual
 
@@ -161,17 +204,59 @@ curl -X POST "http://localhost:8000/api/v1/analyze/?topic=Inteligencia%20Artific
      -d ""
 ```
 
-#### 3. Verificar Usuário Logado
+#### 2b. Fazer uma Requisição Protegida (usando Bearer Token)
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/analyze/?topic=Inteligencia%20Artificial" \
+     -H "accept: application/json" \
+     -H "Authorization: Bearer 12345678-1234-5678-9012-123456789012" \
+     -d ""
+```
+
+#### 3. Verificar Usuário Logado (com cookie)
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/auth/me" \
      -b cookies.txt
 ```
 
-#### 4. Logout
+#### 3b. Verificar Usuário Logado (com Bearer Token)
+
+```bash
+curl -X GET "http://localhost:8000/api/v1/auth/me" \
+     -H "Authorization: Bearer 12345678-1234-5678-9012-123456789012"
+```
+
+#### 4. Logout (com cookie)
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/auth/logout" \
      -b cookies.txt \
      -c cookies.txt
 ```
+
+**Nota:** Com Bearer Tokens, não há necessidade de fazer logout explícito. O token expira naturalmente.
+
+---
+
+## 🔄 Casos de Uso
+
+### Navegador Web
+**Fluxo:**
+1. Usuário faz login via browser
+2. Browser recebe cookie `session_id`
+3. Todas as requisições subsequentes incluem automaticamente o cookie
+4. Usuário faz logout (limpa cookie)
+
+**Vantagem:** Experiência de usuário contínua; cookies gerenciados automaticamente pelo navegador.
+
+### API/Script Externo
+**Fluxo:**
+1. Script faz login com token em `/api/v1/auth/login`
+2. Script inclui Bearer token no header em todas as requisições
+3. Sem necessidade de logout; token expira naturalmente
+
+**Vantagem:** Simples para integrações; ideal para automações e bots.
+
+### Integração Híbrida
+O mesmo endpoint pode ser acessado tanto por navegadores (cookies) quanto por scripts (Bearer tokens) simultaneamente, sem conflitos.

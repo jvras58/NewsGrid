@@ -1,11 +1,14 @@
 """Controller de Autenticação (Login/Logout)."""
 
-from fastapi import Response, Request, HTTPException
+from fastapi import Response, Request, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.auth_service import AuthService
 from utils.logging import get_logger
 from utils.settings import settings
 
 logger = get_logger("auth_controller")
+
+security = HTTPBearer(auto_error=False)
 
 
 def login_logic(token: str, response: Response):
@@ -46,14 +49,37 @@ def logout_logic(request: Request, response: Response):
     return {"message": "Logout realizado"}
 
 
-def verify_session(request: Request):
-    """Dependência para proteger rotas."""
+def get_current_user(
+    request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> str:
+    """
+    Função híbrida para autenticação via cookie OU Bearer token.
+
+    Tenta autenticar nesta ordem:
+    1. Session cookie
+    2. Bearer token no header Authorization
+
+    Retorna o nome do usuário autenticado ou levanta HTTPException se não autenticado.
+    """
     session_id = request.cookies.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=401, detail="Não autenticado")
+    if session_id:
+        username = AuthService.get_user_by_session(session_id)
+        if username:
+            logger.debug(f"Usuário autenticado via cookie: {username}")
+            return username
 
-    username = AuthService.get_user_by_session(session_id)
-    if not username:
-        raise HTTPException(status_code=401, detail="Sessão expirada")
+    if credentials is not None and isinstance(
+        credentials, HTTPAuthorizationCredentials
+    ):
+        try:
+            token = credentials.credentials
+            username = AuthService.authenticate_by_token(token)
+            logger.debug(f"Usuário autenticado via Bearer token: {username}")
+            return username
+        except ValueError as e:
+            logger.warning(f"Falha na autenticação via Bearer token: {e}")
 
-    return username
+    raise HTTPException(
+        status_code=401,
+        detail="Não autenticado. Use cookie ou header 'Authorization: Bearer <token>'",
+    )

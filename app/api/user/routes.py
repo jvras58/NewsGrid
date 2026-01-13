@@ -5,9 +5,9 @@ from app.api.user.controller import (
     list_users_logic,
     revoke_user_logic,
 )
-from app.api.auth.controller import verify_session
+from app.api.auth.controller import get_current_user
 
-router = APIRouter(dependencies=[Depends(verify_session)])
+router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
 @router.post("/", response_model=UserResponse)

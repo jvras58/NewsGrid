@@ -82,4 +82,4 @@ class ReportService:
 
         redis = get_redis_client()
         report_ids = redis.smembers(f"user:{user_id}:reports")
-        return list(report_ids)
+        return [rid.decode("utf-8") for rid in report_ids]

@@ -67,7 +67,7 @@ def test_get_report_access_denied(mock_get_client):
 @patch("app.services.report_service.get_redis_client")
 def test_list_by_user(mock_get_client):
     mock_client = Mock()
-    mock_client.smembers.return_value = ["report1", "report2"]
+    mock_client.smembers.return_value = [b"report1", b"report2"]
     mock_get_client.return_value = mock_client
     result = ReportService.list_by_user("user1")
     assert result == ["report1", "report2"]

@@ -1,6 +1,6 @@
 """Schemas para gestão de usuários."""
 
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field
 from typing import Optional
 
 
@@ -12,14 +12,12 @@ class UserCreate(BaseModel):
         pattern=r"^[a-zA-Z0-9_]+$",
         description="Nome do usuário (único)",
     )
-    token: Optional[
-        constr(
-            min_length=36,
-            max_length=36,
-            pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-        )
-    ] = Field(
+
+    token: Optional[str] = Field(
         None,
+        min_length=36,
+        max_length=36,
+        pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
         description="Token personalizado opcional no formato UUID (ex: 12345678-1234-5678-9012-123456789012)",
     )
 

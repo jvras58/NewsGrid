@@ -58,8 +58,8 @@ class ReportService:
             pipeline.execute()
             logger.info(f"Relatório {task_id} salvo para {user_id}")
         except Exception as e:
-            logger.error(f"Erro ao salvar relatório {task_id}: {e}")
-            raise ValueError("Erro ao salvar relatório")
+            logger.exception(f"Erro ao salvar relatório {task_id}")
+            raise ValueError(f"Erro ao salvar relatório: {e}") from e
 
     @staticmethod
     def get_by_id(task_id: str, user_id: Optional[str] = None):

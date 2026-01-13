@@ -10,20 +10,28 @@ from app.api.analyze.routes import router as analyze_router
 from app.api.auth.routes import router as auth_router
 from app.api.user.routes import router as users_router
 from utils.settings import settings
-from utils.logging import setup_logging
+from utils.logging import setup_logging, get_logger
 from scripts.seed_initial import seed_initial_user
 from app.services.auth_service import AuthService
 
 setup_logging()
+logger = get_logger("startup")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    users = AuthService.list_users()
+    try:
+        users = AuthService.list_users()
+    except Exception as e:
+        logger.error(f"Falha ao listar usuários durante a inicialização.: {e}")
+        raise
     if not users:
-        seed_initial_user()
+        try:
+            seed_initial_user()
+        except Exception as e:
+            logger.error(f"Falha ao criar usuário inicial durante a inicialização: {e}")
+            raise
     yield
-    pass
 
 
 app = FastAPI(

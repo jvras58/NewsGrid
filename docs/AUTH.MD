@@ -19,10 +19,18 @@ O sistema utiliza uma estratégia de **Sessões com Cookies**. Após o login, um
 ## 🚀 Como Usar
 
 ### 1. Credenciais Iniciais (Seed)
-Ao iniciar a aplicação pela primeira vez, o sistema cria automaticamente um usuário administrador se ele não existir.
+Para inicializar o sistema com um usuário administrador, execute o script de seed:
+
+```bash
+make seed
+# ou
+uv run python -m scripts.seed_initial
+```
+
+Isso cria o usuário padrão no Redis se ele não existir.
 
 * **Usuário Padrão:** `admin`
-* **Token Padrão:** `newsgrid-secret-123` (Configurável via código/env)
+* **Token Padrão:** `newsgrid-secret-123` (Configurável via `settings.default_token` pelo `.env`)
 
 ### 2. Processo de Autenticação
 1. **Login:** Envie uma requisição POST para `/api/v1/auth/login` com o token no body.

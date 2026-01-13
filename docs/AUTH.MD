@@ -92,7 +92,7 @@ Retorna o usuário autenticado atual.
 ```json
 {
   "username": "parceiro11",
-  "token": "token-personalizado-123" // Opcional (gera UUID se omitido)
+  "token": "123e4567-e89b-12d3-a456-426614174000" // Opcional; se informado, deve ser UUID válido (36 caracteres). Se omitido, será gerado automaticamente.
 }
 ```
 

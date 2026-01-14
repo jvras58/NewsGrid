@@ -53,7 +53,6 @@ class Settings(BaseSettings):
     redis_password: Optional[str] = None
 
     # Configurações de segurança
-    secure_cookies: bool = False
     default_token: str = "12345678-1234-5678-9012-123456789012"
 
     # Configurações JWT

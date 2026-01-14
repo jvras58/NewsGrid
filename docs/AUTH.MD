@@ -144,11 +144,11 @@ As seguintes variáveis de ambiente controlam o comportamento do JWT (definidas 
 
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
-| `SECURITY_API_SECRET_KEY` | `sua-chave-secreta-super-segura` | Chave secreta para assinar os tokens |
-| `SECURITY_ALGORITHM` | `HS256` | Algoritmo de assinatura |
-| `SECURITY_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Tempo de expiração do token em minutos |
+| `JWT_SECRET_KEY` | `sua-chave-secreta-super-segura` | Chave secreta para assinar os tokens |
+| `JWT_ALGORITHM` | `HS256` | Algoritmo de assinatura |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Tempo de expiração do token em minutos |
 
-> ⚠️ **Importante:** Em produção, defina `SECURITY_API_SECRET_KEY` com uma chave forte e única no arquivo `.env`.
+> ⚠️ **Importante:** Em produção, defina `JWT_SECRET_KEY` com uma chave forte e única no arquivo `.env`.
 
 ---
 

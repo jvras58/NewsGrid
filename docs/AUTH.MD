@@ -69,7 +69,7 @@ Isso cria o usuário padrão no Redis se ele não existir.
 
 ### Expiração do Token
 
-- **Expiração:** O JWT expira após 30 minutos (configurável via `security_access_token_expire_minutes`).
+- **Expiração:** O JWT expira após 30 minutos (configurável via `jwt_access_token_expire_minutes`).
 - **Relatórios:** Relatórios criados permanecem associados ao usuário no Redis e podem ser acessados após novo login.
 - **Renovação:** Para renovar o acesso, o usuário deve fazer login novamente via `/api/v1/auth/login`.
 

@@ -14,13 +14,13 @@ logger = get_logger("auth_controller")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def login_logic(username: str, token_senha: str):
+def login_logic(username: str, access_token: str):
     """
     Valida as credenciais (User + Token) e retorna o JWT.
 
     Args:
         username: Nome do usuário.
-        token_senha: Token de acesso do usuário (funciona como senha).
+        access_token: Token de acesso do usuário (funciona como senha).
 
     Returns:
         dict: Contendo access_token e token_type.
@@ -29,7 +29,7 @@ def login_logic(username: str, token_senha: str):
         HTTPException: Se as credenciais forem inválidas.
     """
     try:
-        user_do_token = AuthService.authenticate_by_token(token_senha)
+        user_do_token = AuthService.authenticate_by_token(access_token)
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

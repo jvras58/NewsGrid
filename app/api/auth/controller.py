@@ -58,7 +58,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         str: Username do usuário autenticado.
 
     Raises:
-        HTTPException: Se o token for inválido ou expirado.
+        HTTPException: Se o token for inválido, expirado ou usuário revogado.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -68,6 +68,8 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     try:
         username = extract_username(token)
         if not username:
+            raise credentials_exception
+        if not AuthService.user_exists(username):
             raise credentials_exception
     except JWTError:
         raise credentials_exception

@@ -136,6 +136,20 @@ class AuthService:
         return {"status": "revoked", "username": username}
 
     @staticmethod
+    def user_exists(username: str):
+        """
+        Verifica se um usuário existe no sistema.
+
+        Args:
+            username (str): O nome do usuário a ser verificado.
+
+        Returns:
+            bool: True se o usuário existir, False caso contrário.
+        """
+        redis = get_redis_client()
+        return redis.exists(f"auth:user:{username}")
+
+    @staticmethod
     def authenticate_by_token(token: str):
         """
         Autentica um usuário pelo token fornecido, verificando sua validade e existência.

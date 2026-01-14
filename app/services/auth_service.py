@@ -147,7 +147,7 @@ class AuthService:
             bool: True se o usuário existir, False caso contrário.
         """
         redis = get_redis_client()
-        return redis.exists(f"auth:user:{username}")
+        return bool(redis.exists(f"auth:user:{username}"))
 
     @staticmethod
     def authenticate_by_token(token: str):

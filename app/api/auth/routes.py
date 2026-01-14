@@ -1,23 +1,27 @@
-from fastapi import APIRouter, Response, Request, Depends
-from app.api.auth.schemas import LoginRequest
-from app.api.auth.controller import login_logic, logout_logic, verify_session
+"""Rotas de autenticação com JWT Bearer Token."""
+
+from typing import Annotated
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+
+from app.api.auth.controller import login_logic, get_current_user
+from app.api.auth.schemas import TokenResponse
 
 router = APIRouter()
 
 
-@router.post("/login")
-async def login(response: Response, data: LoginRequest):
-    """Troca credenciais (Token) por Sessão (Cookie)."""
-    return login_logic(data.token, response)
+@router.post("/login", response_model=TokenResponse)
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    """
+    Login compatível com OAuth2.
 
-
-@router.post("/logout")
-async def logout(response: Response, request: Request):
-    """Encerra a sessão."""
-    return logout_logic(request, response)
+    - **username:** Seu nome de usuário
+    - **password:** Seu token de acesso
+    """
+    return login_logic(form_data.username, form_data.password)
 
 
 @router.get("/me")
-async def get_current_user(username: str = Depends(verify_session)):
-    """Verifica quem está logado."""
-    return {"username": username, "status": "authenticated"}
+async def get_me(username: str = Depends(get_current_user)):
+    """Retorna informações do usuário autenticado via JWT."""
+    return {"username": username, "status": "authenticated via JWT"}

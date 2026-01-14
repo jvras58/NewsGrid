@@ -3,8 +3,9 @@ Agente Pesquisador
 """
 
 from agno.tools.bravesearch import BraveSearchTools
-from utils.settings import settings
+
 from utils.base_agent import BaseAgent
+from utils.settings import settings
 
 
 class ResearchAgent(BaseAgent):

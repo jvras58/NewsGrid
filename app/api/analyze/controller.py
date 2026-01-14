@@ -2,9 +2,10 @@
 Lógica de negócio para requisições de análise.
 """
 
-from utils.send_to_queue import send_to_queue
-from utils.logging import get_logger
 import uuid
+
+from utils.logging import get_logger
+from utils.send_to_queue import send_to_queue
 
 logger = get_logger("analyze_controller")
 

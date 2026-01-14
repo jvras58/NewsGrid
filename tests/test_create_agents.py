@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
-from app.agents.agent_research import ResearchAgent
+
 from app.agents.agent_analyst import AnalystAgent
+from app.agents.agent_research import ResearchAgent
 
 
 @patch("utils.base_agent.create_agent")

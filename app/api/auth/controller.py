@@ -1,13 +1,14 @@
 """Controller de Autenticação (JWT + OAuth2)."""
 
 from typing import Annotated
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
 
 from app.services.auth_service import AuthService
-from utils.security import create_access_token, extract_username
 from utils.logging import get_logger
+from utils.security import create_access_token, extract_username
 
 logger = get_logger("auth_controller")
 
@@ -30,12 +31,12 @@ def login_logic(username: str, access_token: str):
     """
     try:
         user_do_token = AuthService.authenticate_by_token(access_token)
-    except ValueError:
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
     if user_do_token != username:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -71,6 +72,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
             raise credentials_exception
         if not AuthService.user_exists(username):
             raise credentials_exception
-    except PyJWTError:
-        raise credentials_exception
+    except PyJWTError as e:
+        raise credentials_exception from e
     return username

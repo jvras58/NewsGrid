@@ -1,7 +1,8 @@
 import json
 from unittest.mock import Mock, patch
-from app.workers.worker_researcher import ResearchWorker
+
 from app.workers.worker_analyst import AnalystWorker
+from app.workers.worker_researcher import ResearchWorker
 
 
 @patch("utils.broker.get_rabbitmq_connection")

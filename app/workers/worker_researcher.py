@@ -3,9 +3,10 @@ Worker responsável por realizar pesquisas detalhadas sobre tópicos fornecidos.
 """
 
 import json
+
+from app.agents.agent_research import ResearchAgent
 from utils.base_worker import BaseWorker
 from utils.send_to_queue import send_to_queue
-from app.agents.agent_research import ResearchAgent
 
 
 class ResearchWorker(BaseWorker):

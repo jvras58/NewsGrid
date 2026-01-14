@@ -1,10 +1,11 @@
 """Rotas de autenticação com JWT Bearer Token."""
 
 from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.auth.controller import login_logic, get_current_user
+from app.api.auth.controller import get_current_user, login_logic
 from app.api.auth.schemas import TokenResponse
 
 router = APIRouter()

@@ -2,10 +2,10 @@
 Script para iniciar todos os workers em background.
 """
 
+import signal
 import subprocess
 import sys
 import time
-import signal
 
 
 def start_worker(command):

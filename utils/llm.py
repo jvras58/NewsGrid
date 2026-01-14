@@ -3,8 +3,9 @@ Utilitários para criação e configuração de agentes LLM.
 """
 
 from agno.agent import Agent
-from utils.settings import settings
 from agno.models.groq import Groq
+
+from utils.settings import settings
 
 
 def create_agent(

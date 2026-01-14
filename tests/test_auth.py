@@ -1,9 +1,10 @@
 """Testes de autenticação JWT."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import jwt
+
 from utils.settings import settings
 
 
@@ -65,12 +66,12 @@ def test_get_current_user_unauthorized(client):
 
 def test_get_current_user_expired_token(client):
     """Testa endpoint /me com token JWT expirado."""
-    expired_time = datetime.now(timezone.utc) - timedelta(minutes=1)
+    expired_time = datetime.now(UTC) - timedelta(minutes=1)
     to_encode = {
         "sub": "test_user",
         "exp": expired_time,
-        "nbf": datetime.now(timezone.utc) - timedelta(minutes=5),
-        "iat": datetime.now(timezone.utc) - timedelta(minutes=5),
+        "nbf": datetime.now(UTC) - timedelta(minutes=5),
+        "iat": datetime.now(UTC) - timedelta(minutes=5),
         "iss": "NewsGrid-Backend",
     }
     expired_token = jwt.encode(
@@ -87,7 +88,7 @@ def test_get_current_user_expired_token(client):
 
 def test_get_current_user_invalid_signature(client):
     """Testa endpoint /me com token JWT com assinatura inválida."""
-    current_time = datetime.now(timezone.utc)
+    current_time = datetime.now(UTC)
     to_encode = {
         "sub": "test_user",
         "exp": current_time + timedelta(minutes=30),

@@ -3,6 +3,7 @@ Função Utilitária para conexão com RabbitMQ.
 """
 
 import pika
+
 from utils.settings import settings
 
 

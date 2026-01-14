@@ -1,9 +1,11 @@
 """Utilitários de segurança para JWT."""
 
-from datetime import datetime, timedelta, timezone
+import logging
+from datetime import UTC, datetime, timedelta
+
 import jwt
 from jwt import PyJWTError
-import logging
+
 from utils.settings import settings
 
 
@@ -19,7 +21,7 @@ def create_access_token(data: dict) -> str:
         str: Token JWT codificado.
     """
     to_encode = data.copy()
-    current_time = datetime.now(timezone.utc)
+    current_time = datetime.now(UTC)
     expire = current_time + timedelta(minutes=settings.jwt_access_token_expire_minutes)
     to_encode.update({"exp": expire})
     to_encode.update({"nbf": current_time})

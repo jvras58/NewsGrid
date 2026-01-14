@@ -3,6 +3,7 @@ Classe base para agentes que usam create_agent.
 """
 
 from abc import ABC, abstractmethod
+
 from utils.llm import create_agent
 
 

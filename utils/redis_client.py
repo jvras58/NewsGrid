@@ -3,6 +3,7 @@ Função Utilitária para conexão com Redis.
 """
 
 import redis
+
 from utils.settings import settings
 
 

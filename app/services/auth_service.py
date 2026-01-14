@@ -1,9 +1,11 @@
 """Serviço central para autenticação e gestão de usuários no Redis."""
 
 import uuid
+
 from redis.exceptions import WatchError
-from utils.redis_client import get_redis_client
+
 from utils.logging import get_logger
+from utils.redis_client import get_redis_client
 
 logger = get_logger("auth_service")
 
@@ -48,11 +50,11 @@ class AuthService:
                     pipe.sadd("auth:users_list", username)
                     pipe.execute()
                     break
-                except WatchError:
+                except WatchError as e:
                     if attempt == max_retries - 1:
                         raise ValueError(
                             "Falha ao criar usuário devido a contenção alta no Redis após múltiplas tentativas"
-                        )
+                        ) from e
                     continue
 
         logger.info(f"Usuário criado: {username}")
@@ -141,8 +143,8 @@ class AuthService:
             raise ValueError("Token inválido")
         try:
             uuid.UUID(token)
-        except ValueError:
-            raise ValueError("Token inválido")
+        except ValueError as e:
+            raise ValueError("Token inválido") from e
         redis = get_redis_client()
         username = redis.get(f"auth:token:{token}")
         if not username:

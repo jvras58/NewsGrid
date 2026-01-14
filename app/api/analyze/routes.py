@@ -2,11 +2,13 @@
 Lógica de rotas para análise de tópicos.
 """
 
-from fastapi import APIRouter, Query, HTTPException, Path, Depends
-from .controller import request_analysis_logic
-from app.services.report_service import ReportService
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
+
 from app.api.auth.controller import get_current_user
+from app.services.report_service import ReportService
 from utils.logging import get_logger
+
+from .controller import request_analysis_logic
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -35,7 +37,7 @@ async def get_analysis_report(
         return report
     except ValueError as e:
         logger.warning(f"Erro ao buscar relatório: {e}")
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.get("/my-reports")
@@ -44,4 +46,4 @@ async def list_my_reports(username: str = Depends(get_current_user)):
         ids = ReportService.list_by_user(username)
         return {"user": username, "reports": ids}
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e

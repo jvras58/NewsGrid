@@ -2,8 +2,10 @@
 Envio de mensagens para a fila RabbitMQ.
 """
 
-import pika
 import json
+
+import pika
+
 from utils.broker import get_rabbitmq_connection
 from utils.logging import get_logger
 

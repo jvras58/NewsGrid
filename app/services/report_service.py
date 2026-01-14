@@ -1,16 +1,16 @@
 """Serviço para manipulação de relatórios no Redis."""
 
 import json
-from typing import Optional
-from utils.redis_client import get_redis_client
+
 from utils.logging import get_logger
+from utils.redis_client import get_redis_client
 
 logger = get_logger("report_service")
 
 
 class ReportService:
     @staticmethod
-    def save(task_id: str, topic: str, content: str, user_id: Optional[str] = None):
+    def save(task_id: str, topic: str, content: str, user_id: str | None = None):
         """
         Salva um relatório no Redis com o ID da tarefa, tópico, conteúdo e ID do usuário opcional fornecidos.
 
@@ -62,7 +62,7 @@ class ReportService:
             raise ValueError(f"Erro ao salvar relatório: {e}") from e
 
     @staticmethod
-    def get_by_id(task_id: str, user_id: Optional[str] = None):
+    def get_by_id(task_id: str, user_id: str | None = None):
         """
         Recupera um relatório pelo seu ID de tarefa, aplicando controle de acesso baseado na propriedade do usuário.
 

@@ -5,6 +5,7 @@ Configuração de logging para a aplicação.
 import logging
 import logging.handlers
 from pathlib import Path
+
 from utils.settings import settings
 
 _logging_configured = False

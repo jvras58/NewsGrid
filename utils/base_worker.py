@@ -3,6 +3,7 @@ Classe base para workers que processam mensagens de filas RabbitMQ.
 """
 
 from abc import ABC, abstractmethod
+
 from utils.broker import get_rabbitmq_connection
 from utils.logging import get_logger
 

@@ -2,7 +2,6 @@
 Configurações da aplicação usando Pydantic Settings
 """
 
-from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -38,8 +37,8 @@ class Settings(BaseSettings):
     # Configurações opcionais
     debug: bool = False
     cors_origins: list[str] = ["*"]
-    docs_url: Optional[str] = None
-    redoc_url: Optional[str] = None
+    docs_url: str | None = None
+    redoc_url: str | None = None
 
     # Configurações do pika (RabbitMQ)
     rabbitmq_host: str = "localhost"
@@ -50,7 +49,7 @@ class Settings(BaseSettings):
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
-    redis_password: Optional[str] = None
+    redis_password: str | None = None
 
     # Configurações de segurança
     default_token: str = "12345678-1234-5678-9012-123456789012"

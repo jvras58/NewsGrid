@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
-from app.api.user.schemas import UserCreate, UserResponse
+
+from app.api.auth.controller import get_current_user
 from app.api.user.controller import (
     create_user_logic,
     list_users_logic,
     revoke_user_logic,
 )
-from app.api.auth.controller import get_current_user
+from app.api.user.schemas import UserCreate, UserResponse
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 

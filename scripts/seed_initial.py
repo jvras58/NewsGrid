@@ -1,7 +1,7 @@
 """Script para popular o Redis com um usuário inicial padrão."""
 
-from utils.redis_client import get_redis_client
 from utils.logging import get_logger
+from utils.redis_client import get_redis_client
 from utils.settings import settings
 
 logger = get_logger("seed_initial")

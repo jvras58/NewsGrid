@@ -3,9 +3,10 @@ Worker responsável por analisar dados de pesquisa bruta e gerar relatórios exe
 """
 
 import json
-from utils.base_worker import BaseWorker
-from app.services.report_service import ReportService
+
 from app.agents.agent_analyst import AnalystAgent
+from app.services.report_service import ReportService
+from utils.base_worker import BaseWorker
 
 
 class AnalystWorker(BaseWorker):

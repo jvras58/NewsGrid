@@ -1,59 +1,76 @@
-"""Controller de Autenticação (Login/Logout)."""
+"""Controller de Autenticação (JWT + OAuth2)."""
 
-from fastapi import Response, Request, HTTPException
+from typing import Annotated
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError
+
 from app.services.auth_service import AuthService
+from utils.security import create_access_token, extract_username
 from utils.logging import get_logger
-from utils.settings import settings
 
 logger = get_logger("auth_controller")
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-def login_logic(token: str, response: Response):
+
+def login_logic(username: str, access_token: str):
+    """
+    Valida as credenciais (User + Token) e retorna o JWT.
+
+    Args:
+        username: Nome do usuário.
+        access_token: Token de acesso do usuário (funciona como senha).
+
+    Returns:
+        dict: Contendo access_token e token_type.
+
+    Raises:
+        HTTPException: Se as credenciais forem inválidas.
+    """
     try:
-        username = AuthService.authenticate_by_token(token)
-
-        session_id = AuthService.create_session(username)
-
-        response.set_cookie(
-            key="session_id",
-            value=session_id,
-            httponly=True,
-            max_age=86400,
-            samesite="lax",
-            secure=settings.secure_cookies,
-            path="/",
+        user_do_token = AuthService.authenticate_by_token(access_token)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas",
+            headers={"WWW-Authenticate": "Bearer"},
         )
+    if user_do_token != username:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token não pertence a este usuário",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": username})
+    logger.info(f"JWT gerado para: {username}")
+    return {"access_token": access_token, "token_type": "bearer"}
 
-        logger.info(f"Login realizado: {username}")
-        return {"message": "Login realizado", "user": username}
 
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    """
+    Valida o Token JWT nas requisições protegidas.
 
+    Args:
+        token: Token JWT extraído do header Authorization.
 
-def logout_logic(request: Request, response: Response):
-    session_id = request.cookies.get("session_id")
+    Returns:
+        str: Username do usuário autenticado.
 
-    AuthService.delete_session(session_id)
-
-    response.delete_cookie(
-        key="session_id",
-        path="/",
-        samesite="lax",
-        secure=settings.secure_cookies,
-        httponly=True,
+    Raises:
+        HTTPException: Se o token for inválido, expirado ou usuário revogado.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Token inválido ou expirado",
+        headers={"WWW-Authenticate": "Bearer"},
     )
-    return {"message": "Logout realizado"}
-
-
-def verify_session(request: Request):
-    """Dependência para proteger rotas."""
-    session_id = request.cookies.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=401, detail="Não autenticado")
-
-    username = AuthService.get_user_by_session(session_id)
-    if not username:
-        raise HTTPException(status_code=401, detail="Sessão expirada")
-
+    try:
+        username = extract_username(token)
+        if not username:
+            raise credentials_exception
+        if not AuthService.user_exists(username):
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
     return username

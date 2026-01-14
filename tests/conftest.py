@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.startup import app
-from app.api.auth.controller import verify_session
+from app.api.auth.controller import get_current_user
 
 
 @pytest.fixture
@@ -11,9 +11,9 @@ def client():
 
 @pytest.fixture
 def authenticated_client():
-    app.dependency_overrides[verify_session] = lambda: "test_user"
+    app.dependency_overrides[get_current_user] = lambda: "test_user"
     yield TestClient(app)
-    app.dependency_overrides.pop(verify_session, None)
+    app.dependency_overrides.pop(get_current_user, None)
 
 
 @pytest.fixture

@@ -64,3 +64,8 @@ line-ending = "auto"
 
 # Formatar código em docstrings
 docstring-code-format = true
+
+# Como Usar o Ruff:
+# Verificar o código: Execute uv run ruff check . para identificar problemas de linting.
+# Corrigir automaticamente: Use uv run ruff check --fix . para corrigir problemas fixáveis (como organização de imports).
+# Formatar o código: Execute uv run ruff format . para formatar o código de acordo com as regras definidas.

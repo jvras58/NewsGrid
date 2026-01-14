@@ -5,7 +5,7 @@ Lógica de rotas para análise de tópicos.
 from fastapi import APIRouter, Query, HTTPException, Path, Depends
 from .controller import request_analysis_logic
 from app.services.report_service import ReportService
-from app.api.auth.controller import verify_session
+from app.api.auth.controller import get_current_user
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/")
 async def request_analysis(
     topic: str = Query(..., description="Tópico para análise"),
-    username: str = Depends(verify_session),
+    username: str = Depends(get_current_user),
 ):
     logger.info(f"Requisição recebida para análise de tópico: {topic}")
     result = request_analysis_logic(topic, username)
@@ -28,7 +28,7 @@ async def request_analysis(
 @router.get("/report/{task_id}")
 async def get_analysis_report(
     task_id: str = Path(..., description="ID da tarefa para recuperar o relatório"),
-    username: str = Depends(verify_session),
+    username: str = Depends(get_current_user),
 ):
     try:
         report = ReportService.get_by_id(task_id, user_id=username)
@@ -39,7 +39,7 @@ async def get_analysis_report(
 
 
 @router.get("/my-reports")
-async def list_my_reports(username: str = Depends(verify_session)):
+async def list_my_reports(username: str = Depends(get_current_user)):
     try:
         ids = ReportService.list_by_user(username)
         return {"user": username, "reports": ids}

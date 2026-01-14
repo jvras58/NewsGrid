@@ -1,7 +1,8 @@
 """Utilitários de segurança para JWT."""
 
 from datetime import datetime, timedelta, timezone
-from jose import jwt
+from jose import jwt, JWTError
+import logging
 from utils.settings import settings
 
 
@@ -50,5 +51,6 @@ def extract_username(jwt_token: str) -> str:
             algorithms=[settings.security_algorithm],
         )
         return payload.get("sub") or ""
-    except Exception:
+    except JWTError as e:
+        logging.error(f"JWT decoding error: {e}")
         return ""

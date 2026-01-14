@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
 from app.services.auth_service import AuthService
-from app.utils.security import create_access_token, extract_username
+from utils.security import create_access_token, extract_username
 from utils.logging import get_logger
 
 logger = get_logger("auth_controller")

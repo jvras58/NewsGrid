@@ -3,7 +3,7 @@
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError
+from jwt import PyJWTError
 
 from app.services.auth_service import AuthService
 from utils.security import create_access_token, extract_username
@@ -71,6 +71,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
             raise credentials_exception
         if not AuthService.user_exists(username):
             raise credentials_exception
-    except JWTError:
+    except PyJWTError:
         raise credentials_exception
     return username

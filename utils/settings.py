@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     redis_db: int = 0
     redis_password: str | None = None
 
+    # Configurações do banco de dados SQLAlchemy
+    database_url: str = "sqlite+aiosqlite:///./app.db"
+    echo_sql: bool = False
+
     # Configurações de segurança
     default_token: str = "12345678-1234-5678-9012-123456789012"
 

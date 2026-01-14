@@ -56,6 +56,11 @@ class Settings(BaseSettings):
     secure_cookies: bool = False
     default_token: str = "12345678-1234-5678-9012-123456789012"
 
+    # Configurações JWT
+    security_api_secret_key: str = "chave-secreta-super-segura"
+    security_algorithm: str = "HS256"
+    security_access_token_expire_minutes: int = 30
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False
     )

@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.12.0",
     "pyjwt>=2.10.1",
     "redis>=7.1.0",
+    "sqlalchemy>=2.0.45",
     "uvicorn>=0.40.0",
 ]
 # uv run pytest --cov=app --cov-report=html

@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.analyze.routes import router as analyze_router
 from app.api.auth.routes import router as auth_router
+from app.api.status.routes import router as status_router
 from app.api.user.routes import router as users_router
 from app.services.auth_service import AuthService
 from scripts.seed_initial import seed_initial_user
@@ -56,6 +57,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(users_router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(analyze_router, prefix="/api/v1/analyze", tags=["Analyze"])
+app.include_router(status_router, prefix="/api/v1/status", tags=["Status"])
 
 
 @app.get("/")

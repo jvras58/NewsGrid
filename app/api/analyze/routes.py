@@ -51,7 +51,7 @@ async def request_analysis(
 async def get_analysis_report(
     task_id: str,
     current_user: get_current_user_dep,
-    db=Session,
+    db: Session,
 ):
     """
     Obtém relatório por task_id.
@@ -71,7 +71,7 @@ async def get_analysis_report(
 @router.get("/my-reports", response_model=MyReportsResponse)
 async def list_my_reports(
     current_user: get_current_user_dep,
-    db=Session,
+    db: Session,
 ):
     """
     Lista relatórios do usuário.

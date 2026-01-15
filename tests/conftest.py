@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api.auth.controller import get_current_user
+from app.models.user import User
 from app.startup import app
 
 
@@ -13,7 +14,10 @@ def client():
 
 @pytest.fixture
 def authenticated_client():
-    app.dependency_overrides[get_current_user] = lambda: 1
+    mock_user = User(
+        id=1, username="testuser", email="test@example.com", hashed_password="hashed"
+    )
+    app.dependency_overrides[get_current_user] = lambda: mock_user
     yield TestClient(app)
     app.dependency_overrides.pop(get_current_user, None)
 

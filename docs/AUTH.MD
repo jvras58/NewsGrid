@@ -7,8 +7,8 @@ Este documento descreve o funcionamento do sistema de autenticação via **JWT B
 O sistema utiliza o padrão **OAuth2 com JWT Bearer Token**, seguindo as melhores práticas do FastAPI. Após o login, um token JWT é gerado e deve ser enviado no header `Authorization` de todas as requisições protegidas.
 
 ### Fluxo de Validação
-1. **Cliente** faz login enviando `username` e `password` (token de acesso) via POST para `/api/v1/auth/login`.
-2. **API (FastAPI)** valida o token de acesso no Redis, verifica se pertence ao usuário e gera um JWT.
+1. **Cliente** faz login enviando `username` e `password` via POST para `/api/v1/auth/login`.
+2. **API (FastAPI)** valida as credenciais no PostgreSQL, verificando o hash da senha, e gera um JWT.
 3. **Para rotas protegidas:** A API valida o JWT via dependência `get_current_user` usando `OAuth2PasswordBearer`.
 4. **Se Válido:** O JWT é decodificado e o `username` é extraído do payload. A API permite o acesso.
 5. **Se Inválido:** A API retorna `401 Unauthorized` com header `WWW-Authenticate: Bearer`.
@@ -31,13 +31,13 @@ make seed
 uv run python -m scripts.seed_initial
 ```
 
-Isso cria o usuário padrão no Redis se ele não existir.
+Isso cria o usuário padrão no PostgreSQL se ele não existir.
 
 * **Usuário Padrão:** `admin`
-* **Token de Acesso Padrão:** `12345678-1234-5678-9012-123456789012` (Configurável via `settings.default_token` pelo `.env`)
+* **Senha Padrão:** `admin123` (Configurável via `settings.default_user_password` pelo `.env`)
 
 ### 2. Processo de Autenticação
-1. **Login:** Envie uma requisição POST para `/api/v1/auth/login` com `username` e `password` (seu token de acesso).
+1. **Login:** Envie uma requisição POST para `/api/v1/auth/login` com `username` e `password`.
 2. **Receba o JWT:** A resposta contém `access_token` e `token_type`.
 3. **Use o JWT:** Inclua o header `Authorization: Bearer <access_token>` em todas as requisições protegidas.
 
@@ -56,7 +56,7 @@ Isso cria o usuário padrão no Redis se ele não existir.
 | Campo | Descrição |
 |-------|-----------|
 | `username` | Nome do usuário |
-| `password` | Token de acesso do usuário |
+| `password` | Senha do usuário |
 
 **Resposta de Sucesso:**
 
@@ -99,11 +99,12 @@ Isso cria o usuário padrão no Redis se ele não existir.
 ```json
 {
   "username": "parceiro11",
-  "token": "123e4567-e89b-12d3-a456-426614174000"
+  "email": "parceiro11@example.com",
+  "password": "senha_segura"
 }
 ```
 
-> O campo `token` é opcional. Se omitido, será gerado automaticamente um UUID.
+> Todos os campos são obrigatórios. A senha será hasheada antes de ser armazenada no PostgreSQL.
 
 ### Listar Usuários
 
@@ -113,28 +114,27 @@ Isso cria o usuário padrão no Redis se ele não existir.
 
 Retorna todos os usuários cadastrados no sistema.
 
-### Revogar Acesso
-
-**DELETE** `/api/v1/users/{username}`
-
-*Requer JWT válido.*
-
-Remove imediatamente o acesso do usuário, invalidando o token de acesso.
-
 ---
 
-## 🛡️ Estrutura no Redis
+## 🛡️ Estrutura de Dados
 
-Para manter a organização, utilizamos *Namespacing* nas chaves do Redis:
+### PostgreSQL (Usuários)
+Os usuários são armazenados no PostgreSQL com as seguintes informações:
+- `id`: ID único do usuário
+- `username`: Nome de usuário único
+- `email`: Email único
+- `hashed_password`: Senha hasheada com bcrypt
+- `created_at`: Data de criação
+
+### Redis (Relatórios e Tasks)
+Para manter a organização, utilizamos *Namespacing* nas chaves do Redis para relatórios e status de tasks:
 
 | Tipo | Padrão da Chave | Exemplo | Descrição |
 | --- | --- | --- | --- |
-| **Token** | `auth:token:{token}` | `auth:token:abc-123` | Guarda o `username` dono do token de acesso. |
-| **Usuário** | `auth:user:{username}` | `auth:user:admin` | Guarda o `token` atual do usuário (lookup reverso). |
-| **Lista** | `auth:users_list` | `auth:users_list` | Set contendo todos os usernames ativos. |
 | **Relatórios** | `user:{username}:reports` | `user:admin:reports` | Set contendo IDs dos relatórios gerados pelo usuário. |
+| **Task Status** | `task:{task_id}` | `task:12345` | Status da task (RESEARCHING, ANALYZING, COMPLETED, FAILED). |
 
-> **Nota:** Com JWT, não há mais chaves `session:{session_id}` no Redis. A validação é feita via assinatura do token.
+> **Nota:** Com JWT, a validação de autenticação é stateless e não requer armazenamento de sessões no Redis.
 
 ---
 
@@ -172,7 +172,7 @@ Isso garante que cada usuário tenha acesso apenas aos seus próprios relatório
 ```bash
 curl -X POST "http://localhost:8000/api/v1/auth/login" \
      -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=admin&password=12345678-1234-5678-9012-123456789012"
+     -d "username=admin&password=admin123"
 ```
 
 **Resposta:**
@@ -204,7 +204,7 @@ curl -X GET "http://localhost:8000/api/v1/auth/me" \
 2. Clique no botão **Authorize** 🔓 no canto superior direito
 3. Preencha:
    - **username:** seu nome de usuário (ex: `admin`)
-   - **password:** seu token de acesso (ex: `12345678-1234-5678-9012-123456789012`)
+   - **password:** sua senha (ex: `admin123`)
 4. Clique em **Authorize**
 5. Todas as requisições subsequentes incluirão automaticamente o JWT
 
@@ -216,7 +216,7 @@ import requests
 # Login
 response = requests.post(
     "http://localhost:8000/api/v1/auth/login",
-    data={"username": "admin", "password": "12345678-1234-5678-9012-123456789012"}
+    data={"username": "admin", "password": "admin123"}
 )
 token = response.json()["access_token"]
 

@@ -12,9 +12,9 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 
 @router.post("/", response_model=UserResponse)
 async def create_user(user: UserCreate):
-    return create_user_logic(user.username, user.email, user.password)
+    return await create_user_logic(user.username, user.email, user.password)
 
 
 @router.get("/")
 async def list_users():
-    return list_users_logic()
+    return await list_users_logic()

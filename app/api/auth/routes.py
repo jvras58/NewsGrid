@@ -7,19 +7,26 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.auth.controller import get_current_user, login_logic
 from app.api.auth.schemas import TokenResponse
+from utils.logging import get_logger
+from utils.security import create_access_token
 
 router = APIRouter()
+logger = get_logger("auth_routes")
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+async def login(form_data: Annotated[OAuth2PasswordRequestForm]):
     """
     Login compatível com OAuth2.
 
     - **username:** Seu nome de usuário
     - **password:** Sua senha
     """
-    return login_logic(form_data.username, form_data.password)
+    user = await login_logic(form_data.username, form_data.password)
+    # TODO: não sei se faz muito sentido o create_acess_token estar aqui
+    access_token = create_access_token(data={"sub": user.username})
+    logger.info(f"JWT gerado para: {user.username}")
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me")

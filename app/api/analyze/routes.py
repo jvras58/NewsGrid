@@ -2,16 +2,22 @@
 Lógica de rotas para análise de tópicos.
 """
 
-from fastapi import APIRouter, Depends
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth.controller import get_current_user
+from app.core.database import get_db
 from utils.logging import get_logger
 
-from .controller import request_analysis_logic
+from .controller import get_report_logic, list_my_reports_logic, request_analysis_logic
 from .schemas import AnalyzeRequest, AnalyzeResponse
 
 logger = get_logger(__name__)
 router = APIRouter()
+
+Session = Annotated[AsyncSession, Depends(get_db)]
 
 # TODO: Habilitar rate limiting (Configurar adequadamente)
 # rate_limit_dep = get_rate_limit_dependency()
@@ -37,3 +43,42 @@ async def request_analysis(
         f"Resposta enviada para tópico {request.topic}: {result.get('status', 'unknown')}"
     )
     return AnalyzeResponse(**result)
+
+
+@router.get("/report/{task_id}")
+async def get_analysis_report(
+    task_id: str,
+    user_id: int = Depends(get_current_user),
+    db: AsyncSession = Session,
+):
+    """
+    Obtém relatório por task_id.
+
+    - Autentica usuário.
+    - Retorna relatório se pertencer ao usuário.
+    """
+    try:
+        report = await get_report_logic(task_id, user_id, db)
+        return report
+    except ValueError as e:
+        raise HTTPException(
+            status_code=404 if "não encontrado" in str(e) else 403, detail=str(e)
+        ) from e
+
+
+@router.get("/my-reports")
+async def list_my_reports(
+    user_id: int = Depends(get_current_user),
+    db: AsyncSession = Session,
+):
+    """
+    Lista relatórios do usuário.
+
+    - Autentica usuário.
+    - Retorna lista de task_ids.
+    """
+    try:
+        result = await list_my_reports_logic(user_id, db)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e

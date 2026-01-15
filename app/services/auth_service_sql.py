@@ -1,5 +1,5 @@
 import bcrypt
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,6 +26,20 @@ class AuthServiceSQL:
             str: Hash da senha.
         """
         return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+    @staticmethod
+    def verify_password(hashed_password: str, plain_password: str) -> bool:
+        """
+        Verifica se a senha plain corresponde ao hash.
+
+        Args:
+            hashed_password: Hash da senha.
+            plain_password: Senha em plain text.
+
+        Returns:
+            bool: True se corresponde.
+        """
+        return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 
     @staticmethod
     async def create_user(

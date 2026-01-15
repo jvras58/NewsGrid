@@ -1,6 +1,5 @@
 """Controller de Autenticação (JWT + OAuth2)."""
 
-import asyncio
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -10,41 +9,27 @@ from jwt import PyJWTError
 from app.core.database import async_session
 from app.services.auth_service_sql import AuthServiceSQL
 from utils.logging import get_logger
-from utils.security import create_access_token, extract_username
+from utils.security import extract_username
 
 logger = get_logger("auth_controller")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def login_logic(username: str, password: str):
+async def login_logic(username: str, password: str):
     """
     Valida as credenciais (User + Password) e retorna o JWT.
 
     Agora consulta Postgres para usuários e verifica senha.
     """
 
-    async def validate():
-        async with async_session() as session:
-            user = await AuthServiceSQL.get_user_by_username(session, username)
-            if not user or not AuthServiceSQL.verify_password(
-                user.hashed_password, password
-            ):
-                raise ValueError("Credenciais inválidas")
-        return user
-
-    try:
-        asyncio.run(validate())
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciais inválidas",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from e
-
-    access_token = create_access_token(data={"sub": username})
-    logger.info(f"JWT gerado para: {username}")
-    return {"access_token": access_token, "token_type": "bearer"}
+    async with async_session() as session:
+        user = await AuthServiceSQL.get_user_by_username(session, username)
+        if not user or not AuthServiceSQL.verify_password(
+            user.hashed_password, password
+        ):
+            raise ValueError("Credenciais inválidas")
+    return user
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -75,4 +60,4 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
                 raise credentials_exception
     except PyJWTError as e:
         raise credentials_exception from e
-    return user.id  # Retornar user_id em vez de username
+    return user.id

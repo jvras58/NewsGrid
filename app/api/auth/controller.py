@@ -41,7 +41,7 @@ async def get_current_user(
         token: Token JWT extraído do header Authorization.
 
     Returns:
-        str: Username do usuário autenticado.
+        int: ID do usuário autenticado.
 
     Raises:
         HTTPException: Se o token for inválido, expirado ou usuário revogado.

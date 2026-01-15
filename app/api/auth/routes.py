@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth.controller import get_current_user, login_logic
-from app.api.auth.schemas import TokenResponse
+from app.api.auth.schemas import CurrentUserResponse, TokenResponse
 from app.core.database import get_db
 from app.models.user import User
 from utils.logging import get_logger
@@ -38,11 +38,10 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me")
+@router.get("/me", response_model=CurrentUserResponse)
 async def get_me(current_user: get_current_user_dep):
     """Retorna informações do usuário autenticado via JWT."""
     return {
-        "user_id": current_user.id,
         "username": current_user.username,
         "status": "authenticated via JWT",
     }

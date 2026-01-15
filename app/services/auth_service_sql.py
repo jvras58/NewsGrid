@@ -1,5 +1,5 @@
 import bcrypt
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -100,15 +100,16 @@ class AuthServiceSQL:
         return result.scalar_one_or_none()
 
     @staticmethod
-    def verify_password(hashed_password: str, plain_password: str) -> bool:
+    async def list_usernames(session: AsyncSession) -> list[str]:
         """
-        Verifica senha.
+        Lista usernames de usuários.
 
         Args:
-            hashed_password: Hash armazenado.
-            plain_password: Senha plain.
+            session: Sessão async.
 
         Returns:
-            bool: True se válida.
+            list[str]: Lista de usernames.
         """
-        return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+        stmt = select(User.username)
+        result = await session.execute(stmt)
+        return result.scalars().all()

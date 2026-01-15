@@ -1,12 +1,14 @@
 """Controller de Autenticação (JWT + OAuth2)."""
 
+import asyncio
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
 
-from app.services.auth_service import AuthService
+from app.core.database import async_session
+from app.services.auth_service_sql import AuthServiceSQL
 from utils.logging import get_logger
 from utils.security import create_access_token, extract_username
 
@@ -15,34 +17,31 @@ logger = get_logger("auth_controller")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def login_logic(username: str, access_token: str):
+def login_logic(username: str, password: str):
     """
-    Valida as credenciais (User + Token) e retorna o JWT.
+    Valida as credenciais (User + Password) e retorna o JWT.
 
-    Args:
-        username: Nome do usuário.
-        access_token: Token de acesso do usuário (funciona como senha).
-
-    Returns:
-        dict: Contendo access_token e token_type.
-
-    Raises:
-        HTTPException: Se as credenciais forem inválidas.
+    Agora consulta Postgres para usuários e verifica senha.
     """
+
+    async def validate():
+        async with async_session() as session:
+            user = await AuthServiceSQL.get_user_by_username(session, username)
+            if not user or not AuthServiceSQL.verify_password(
+                user.hashed_password, password
+            ):
+                raise ValueError("Credenciais inválidas")
+        return user
+
     try:
-        user_do_token = AuthService.authenticate_by_token(access_token)
+        asyncio.run(validate())
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciais inválidas",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
-    if user_do_token != username:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token não pertence a este usuário",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+
     access_token = create_access_token(data={"sub": username})
     logger.info(f"JWT gerado para: {username}")
     return {"access_token": access_token, "token_type": "bearer"}
@@ -70,8 +69,10 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         username = extract_username(token)
         if not username:
             raise credentials_exception
-        if not AuthService.user_exists(username):
-            raise credentials_exception
+        async with async_session() as session:
+            user = await AuthServiceSQL.get_user_by_username(session, username)
+            if not user:
+                raise credentials_exception
     except PyJWTError as e:
         raise credentials_exception from e
-    return username
+    return user.id  # Retornar user_id em vez de username

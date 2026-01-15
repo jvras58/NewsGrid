@@ -1,44 +1,37 @@
-"""Script para popular o Redis com um usuário inicial padrão."""
+"""Script para popular o Postgres com um usuário inicial padrão."""
 
+import asyncio
+import bcrypt
+
+from app.core.database import async_session
+from app.services.auth_service_sql import AuthServiceSQL
 from utils.logging import get_logger
-from utils.redis_client import get_redis_client
 from utils.settings import settings
 
 logger = get_logger("seed_initial")
 
 
-def seed_initial_user():
+async def seed_initial_user():
     """
-    Cria um usuário padrão no Redis se não existir.
-
-    Salva no Redis: Chave "auth:token:{token}" -> Valor "{user}"
-                     Chave "auth:user:{user}" -> Valor "{token}"
-                     Adiciona à "auth:users_list"
+    Cria um usuário padrão no Postgres se não existir.
     """
-    try:
-        redis = get_redis_client()
-
-        default_token = settings.default_token
-        user_data = "admin"
-
-        user_key = f"auth:user:{user_data}"
-
-        if not redis.exists(user_key):
-            token_key = f"auth:token:{default_token}"
-            pipe = redis.pipeline()
-            pipe.set(token_key, user_data)
-            pipe.set(user_key, default_token)
-            pipe.sadd("auth:users_list", user_data)
-            pipe.execute()
-            logger.info(
-                "🔑 Seed de Auth realizado. Usuário padrão configurado no Redis."
+    async with async_session() as session:
+        user = await AuthServiceSQL.get_user_by_username(session, "admin")
+        if not user:
+            hashed_password = bcrypt.hashpw(
+                settings.default_token.encode(), bcrypt.gensalt()
+            ).decode()
+            await AuthServiceSQL.create_user(
+                session, "admin", "admin@example.com", hashed_password
             )
+            logger.info("🔑 Usuário inicial 'admin' criado no Postgres.")
         else:
-            logger.info("🔑 Usuário padrão já existe no Redis.")
-    except Exception as e:
-        logger.error(f"Erro durante o seed inicial do usuário: {e}")
-        raise
+            logger.info("🔑 Usuário inicial já existe no Postgres.")
+
+
+def main():
+    asyncio.run(seed_initial_user())
 
 
 if __name__ == "__main__":
-    seed_initial_user()
+    main()

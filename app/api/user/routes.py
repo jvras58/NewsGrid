@@ -10,6 +10,7 @@ from app.api.user.controller import (
 )
 from app.api.user.schemas import UserCreate, UserResponse
 from app.core.database import get_db
+from app.models.user import User
 
 router = APIRouter()
 
@@ -18,7 +19,7 @@ router = APIRouter()
 async def create_user(
     user: UserCreate,
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[int, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     return await create_user_logic(user.username, user.email, user.password, session)
 
@@ -26,6 +27,6 @@ async def create_user(
 @router.get("/")
 async def list_users(
     session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[int, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     return await list_users_logic(session)

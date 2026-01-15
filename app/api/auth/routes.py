@@ -9,17 +9,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.auth.controller import get_current_user, login_logic
 from app.api.auth.schemas import TokenResponse
 from app.core.database import get_db
+from app.models.user import User
 from utils.logging import get_logger
 from utils.security import create_access_token
 
 router = APIRouter()
 logger = get_logger("auth_routes")
 
+Session = Annotated[AsyncSession, Depends(get_db)]
+get_current_user_dep = Annotated[User, Depends(get_current_user)]
+
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm],
-    session: Annotated[AsyncSession, Depends(get_db)],
+    session: AsyncSession = Session,
 ):
     """
     Login compatível com OAuth2.
@@ -35,6 +39,10 @@ async def login(
 
 
 @router.get("/me")
-async def get_me(user_id: int = Depends(get_current_user)):
+async def get_me(current_user: get_current_user_dep):
     """Retorna informações do usuário autenticado via JWT."""
-    return {"user_id": user_id, "status": "authenticated via JWT"}
+    return {
+        "user_id": current_user.id,
+        "username": current_user.username,
+        "status": "authenticated via JWT",
+    }

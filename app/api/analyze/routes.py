@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth.controller import get_current_user
 from app.core.database import get_db
+from app.models.user import User
 from utils.logging import get_logger
 
 from .controller import get_report_logic, list_my_reports_logic, request_analysis_logic
@@ -18,6 +19,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 Session = Annotated[AsyncSession, Depends(get_db)]
+get_current_user_dep = Annotated[User, Depends(get_current_user)]
 
 # TODO: Habilitar rate limiting (Configurar adequadamente)
 # rate_limit_dep = get_rate_limit_dependency()
@@ -26,7 +28,7 @@ Session = Annotated[AsyncSession, Depends(get_db)]
 @router.post("/", response_model=AnalyzeResponse)
 async def request_analysis(
     request: AnalyzeRequest,
-    user_id: int = Depends(get_current_user),
+    current_user: get_current_user_dep,
     # _rate_limited: bool = Depends(rate_limit_dep),
 ):
     """
@@ -38,7 +40,7 @@ async def request_analysis(
     - Retorna task_id imediatamente.
     """
     logger.info(f"Requisição recebida para análise de tópico: {request.topic}")
-    result = request_analysis_logic(request.topic, user_id)
+    result = request_analysis_logic(request.topic, current_user.id)
     logger.info(
         f"Resposta enviada para tópico {request.topic}: {result.get('status', 'unknown')}"
     )
@@ -48,7 +50,7 @@ async def request_analysis(
 @router.get("/report/{task_id}")
 async def get_analysis_report(
     task_id: str,
-    user_id: int = Depends(get_current_user),
+    current_user: get_current_user_dep,
     db: AsyncSession = Session,
 ):
     """
@@ -58,7 +60,7 @@ async def get_analysis_report(
     - Retorna relatório se pertencer ao usuário.
     """
     try:
-        report = await get_report_logic(task_id, user_id, db)
+        report = await get_report_logic(task_id, current_user.id, db)
         return report
     except ValueError as e:
         raise HTTPException(
@@ -68,7 +70,7 @@ async def get_analysis_report(
 
 @router.get("/my-reports")
 async def list_my_reports(
-    user_id: int = Depends(get_current_user),
+    current_user: get_current_user_dep,
     db: AsyncSession = Session,
 ):
     """
@@ -78,7 +80,7 @@ async def list_my_reports(
     - Retorna lista de task_ids.
     """
     try:
-        result = await list_my_reports_logic(user_id, db)
+        result = await list_my_reports_logic(current_user.id, db)
         return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

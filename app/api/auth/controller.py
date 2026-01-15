@@ -8,6 +8,7 @@ from jwt import PyJWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.models.user import User
 from app.services.auth_service_sql import AuthServiceSQL
 from utils.logging import get_logger
 from utils.security import extract_username
@@ -33,7 +34,7 @@ async def login_logic(username: str, password: str, session: AsyncSession):
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     session: Annotated[AsyncSession, Depends(get_db)],
-) -> int:
+) -> User:
     """
     Valida o Token JWT nas requisições protegidas.
 
@@ -41,7 +42,7 @@ async def get_current_user(
         token: Token JWT extraído do header Authorization.
 
     Returns:
-        int: ID do usuário autenticado.
+        User: Objeto do usuário autenticado.
 
     Raises:
         HTTPException: Se o token for inválido, expirado ou usuário revogado.
@@ -60,4 +61,4 @@ async def get_current_user(
             raise credentials_exception
     except PyJWTError as e:
         raise credentials_exception from e
-    return user.id
+    return user

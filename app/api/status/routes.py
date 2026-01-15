@@ -11,10 +11,13 @@ from .schemas import TaskStatusResponse
 
 router = APIRouter()
 
+Session = Annotated[AsyncSession, Depends(get_db)]
+
 
 @router.get("/status/{task_id}", response_model=TaskStatusResponse)
 async def get_task_status(
-    task_id: str, session: Annotated[AsyncSession, Depends(get_db)]
+    task_id: str,
+    db: AsyncSession = Session,
 ):
     """
     Obtém o status de uma tarefa.
@@ -27,7 +30,7 @@ async def get_task_status(
     if not status:
         raise HTTPException(status_code=404, detail="Task not found or expired")
 
-    report = await ReportServiceSQL.get_report_by_task_id(session, task_id)
+    report = await ReportServiceSQL.get_report_by_task_id(db, task_id)
     created_at = report.created_at if report else None
 
     return TaskStatusResponse(task_id=task_id, status=status, created_at=created_at)

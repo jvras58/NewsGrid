@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth.controller import get_current_user
 from app.core.database import get_db
-from app.models.user import User
+from app.models import User
 from utils.logging import get_logger
 
 from .controller import get_report_logic, list_my_reports_logic, request_analysis_logic

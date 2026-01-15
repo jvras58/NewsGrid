@@ -10,7 +10,7 @@ from app.api.user.controller import (
 )
 from app.api.user.schemas import UserCreate, UserResponse
 from app.core.database import get_db
-from app.models.user import User
+from app.models import User
 
 router = APIRouter()
 

@@ -8,7 +8,7 @@ from jwt import PyJWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models.user import User
+from app.models import User
 from app.services.auth_service_sql import AuthServiceSQL
 from utils.logging import get_logger
 from utils.security import create_access_token, extract_username

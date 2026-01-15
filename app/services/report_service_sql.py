@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.models.reports import Report
+from app.models import Report
 from utils.logging import get_logger
 
 logger = get_logger("report_service_sql")

@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     redis_db: int = 0
     redis_password: str | None = None
 
+    # Task Status Constants
+    task_status_researching: str = "RESEARCHING"
+    task_status_analyzing: str = "ANALYZING"
+    task_status_completed: str = "COMPLETED"
+    task_status_failed: str = "FAILED"
+
+    # Task Status Key Pattern
+    task_status_key_pattern: str = "task:{task_id}"
+
+    # TTL for task status (24 hours in seconds)
+    task_status_ttl_seconds: int = 86400
+
     # Configurações do banco de dados SQLAlchemy
     database_url: str = "sqlite+aiosqlite:///./app.db"
     echo_sql: bool = False

@@ -27,7 +27,10 @@ async def login(username: str, password: str, session: AsyncSession) -> str:
 
     user = await AuthServiceSQL.get_user_by_username(session, username)
     if not user or not AuthServiceSQL.verify_password(user.hashed_password, password):
-        raise ValueError("Credenciais inválidas")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciais inválidas",
+        )
     access_token = create_access_token(data={"sub": user.username})
     logger.info(f"JWT gerado para: {user.username}")
     return access_token

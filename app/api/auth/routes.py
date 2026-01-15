@@ -6,12 +6,11 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.auth.controller import get_current_user, login_logic
+from app.api.auth.controller import get_current_user, login
 from app.api.auth.schemas import CurrentUserResponse, TokenResponse
 from app.core.database import get_db
 from app.models.user import User
 from utils.logging import get_logger
-from utils.security import create_access_token
 
 router = APIRouter()
 logger = get_logger("auth_routes")
@@ -21,7 +20,7 @@ get_current_user_dep = Annotated[User, Depends(get_current_user)]
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(
+async def login_route(
     form_data: Annotated[OAuth2PasswordRequestForm],
     session: AsyncSession = Session,
 ):
@@ -31,10 +30,7 @@ async def login(
     - **username:** Seu nome de usuário
     - **password:** Sua senha
     """
-    user = await login_logic(form_data.username, form_data.password, session)
-    # TODO: não sei se faz muito sentido o create_acess_token estar aqui na rota...
-    access_token = create_access_token(data={"sub": user.username})
-    logger.info(f"JWT gerado para: {user.username}")
+    access_token = await login(form_data.username, form_data.password, session)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

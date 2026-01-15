@@ -11,14 +11,14 @@ from app.core.database import get_db
 from app.models.user import User
 from app.services.auth_service_sql import AuthServiceSQL
 from utils.logging import get_logger
-from utils.security import extract_username
+from utils.security import create_access_token, extract_username
 
 logger = get_logger("auth_controller")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-async def login_logic(username: str, password: str, session: AsyncSession):
+async def login(username: str, password: str, session: AsyncSession) -> str:
     """
     Valida as credenciais (User + Password) e retorna o JWT.
 
@@ -28,7 +28,9 @@ async def login_logic(username: str, password: str, session: AsyncSession):
     user = await AuthServiceSQL.get_user_by_username(session, username)
     if not user or not AuthServiceSQL.verify_password(user.hashed_password, password):
         raise ValueError("Credenciais inválidas")
-    return user
+    access_token = create_access_token(data={"sub": user.username})
+    logger.info(f"JWT gerado para: {user.username}")
+    return access_token
 
 
 async def get_current_user(

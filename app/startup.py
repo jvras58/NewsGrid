@@ -23,6 +23,7 @@ logger = get_logger("startup")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # TODO: get_db aqui?
     async with async_session() as session:
         try:
             count = await AuthServiceSQL.count_users(session)

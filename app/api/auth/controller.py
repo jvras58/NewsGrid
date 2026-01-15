@@ -5,8 +5,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import async_session
+from app.core.database import get_db
 from app.services.auth_service_sql import AuthServiceSQL
 from utils.logging import get_logger
 from utils.security import extract_username
@@ -16,23 +17,23 @@ logger = get_logger("auth_controller")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-async def login_logic(username: str, password: str):
+async def login_logic(username: str, password: str, session: AsyncSession):
     """
     Valida as credenciais (User + Password) e retorna o JWT.
 
     Agora consulta Postgres para usuários e verifica senha.
     """
 
-    async with async_session() as session:
-        user = await AuthServiceSQL.get_user_by_username(session, username)
-        if not user or not AuthServiceSQL.verify_password(
-            user.hashed_password, password
-        ):
-            raise ValueError("Credenciais inválidas")
+    user = await AuthServiceSQL.get_user_by_username(session, username)
+    if not user or not AuthServiceSQL.verify_password(user.hashed_password, password):
+        raise ValueError("Credenciais inválidas")
     return user
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> int:
     """
     Valida o Token JWT nas requisições protegidas.
 
@@ -54,10 +55,9 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         username = extract_username(token)
         if not username:
             raise credentials_exception
-        async with async_session() as session:
-            user = await AuthServiceSQL.get_user_by_username(session, username)
-            if not user:
-                raise credentials_exception
+        user = await AuthServiceSQL.get_user_by_username(session, username)
+        if not user:
+            raise credentials_exception
     except PyJWTError as e:
         raise credentials_exception from e
     return user.id

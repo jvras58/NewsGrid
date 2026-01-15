@@ -114,6 +114,22 @@ class AuthServiceSQL:
         return result.scalar_one_or_none()
 
     @staticmethod
+    async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
+        """
+        Busca usuário por ID.
+
+        Args:
+            session: Sessão assíncrona.
+            user_id: ID do usuário.
+
+        Returns:
+            User ou None.
+        """
+        stmt = select(User).where(User.id == user_id)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    @staticmethod
     async def list_usernames(session: AsyncSession) -> list[str]:
         """
         Lista usernames de usuários.
@@ -127,3 +143,19 @@ class AuthServiceSQL:
         stmt = select(User.username)
         result = await session.execute(stmt)
         return result.scalars().all()
+
+    @staticmethod
+    async def count_users(session: AsyncSession) -> int:
+        """
+        Conta o número de usuários no banco de dados.
+
+        Args:
+            session: Sessão assíncrona.
+
+        Returns:
+            int: Número de usuários.
+        """
+        stmt = select(User)
+        result = await session.execute(stmt)
+        users = result.scalars().all()
+        return len(users)

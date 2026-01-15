@@ -2,7 +2,7 @@
 Schemas para requisições de análise.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class AnalyzeRequest(BaseModel):
@@ -27,8 +27,8 @@ class AnalyzeResponse(BaseModel):
     report: dict | None = Field(None, description="Relatório cached (se disponível).")
     error: str | None = Field(None, description="Mensagem de erro (se falhou).")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "examples": [
                 {
                     "status": "Processamento iniciado",
@@ -46,6 +46,7 @@ class AnalyzeResponse(BaseModel):
                 {"status": "Falha ao iniciar o processamento", "error": "Erro na fila"},
             ]
         }
+    )
 
 
 class ReportResponse(BaseModel):

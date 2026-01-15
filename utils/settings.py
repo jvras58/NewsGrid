@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     echo_sql: bool = False
 
     # Configurações de segurança
-    default_token: str = "12345678-1234-5678-9012-123456789012"
+    default_user_password: str = "admin123"
 
     # Configurações JWT
     jwt_secret_key: str = "chave-secreta-super-segura"

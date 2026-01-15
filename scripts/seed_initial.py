@@ -1,7 +1,6 @@
 """Script para popular o Postgres com um usuário inicial padrão."""
 
 import asyncio
-import bcrypt
 
 from app.core.database import async_session
 from app.services.auth_service_sql import AuthServiceSQL
@@ -18,11 +17,8 @@ async def seed_initial_user():
     async with async_session() as session:
         user = await AuthServiceSQL.get_user_by_username(session, "admin")
         if not user:
-            hashed_password = bcrypt.hashpw(
-                settings.default_token.encode(), bcrypt.gensalt()
-            ).decode()
             await AuthServiceSQL.create_user(
-                session, "admin", "admin@example.com", hashed_password
+                session, "admin", "admin@example.com", settings.default_user_password
             )
             logger.info("🔑 Usuário inicial 'admin' criado no Postgres.")
         else:

@@ -21,7 +21,7 @@ get_current_user_dep = Annotated[User, Depends(get_current_user)]
 
 @router.post("/login", response_model=TokenResponse)
 async def login_route(
-    form_data: Annotated[OAuth2PasswordRequestForm],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db=Session,
 ):
     """

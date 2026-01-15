@@ -5,6 +5,7 @@ from app.api.auth.controller import get_current_user
 from app.startup import app
 
 
+# TODO: TODOS OS TESTES PRECISAM SER REFEITOS PARA USAR O SERVICO COM BANCO DE DADOS POSTGRESQL
 @pytest.fixture
 def client():
     return TestClient(app)
@@ -12,14 +13,14 @@ def client():
 
 @pytest.fixture
 def authenticated_client():
-    app.dependency_overrides[get_current_user] = lambda: "test_user"
+    app.dependency_overrides[get_current_user] = lambda: 1
     yield TestClient(app)
     app.dependency_overrides.pop(get_current_user, None)
 
 
 @pytest.fixture
 def mock_username():
-    return "test_user"
+    return 1
 
 
 @pytest.fixture

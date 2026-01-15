@@ -5,6 +5,7 @@ Lógica de rotas para análise de tópicos.
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
 from app.api.auth.controller import get_current_user
+from app.api.dependencies import get_rate_limit_dependency
 from app.services.report_service import ReportService
 from utils.logging import get_logger
 
@@ -13,11 +14,14 @@ from .controller import request_analysis_logic
 logger = get_logger(__name__)
 router = APIRouter()
 
+rate_limit_dep = get_rate_limit_dependency()
+
 
 @router.post("/")
 async def request_analysis(
     topic: str = Query(..., description="Tópico para análise"),
     username: str = Depends(get_current_user),
+    _rate_limited: bool = Depends(rate_limit_dep),
 ):
     logger.info(f"Requisição recebida para análise de tópico: {topic}")
     result = request_analysis_logic(topic, username)

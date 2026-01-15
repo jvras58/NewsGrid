@@ -22,7 +22,7 @@ get_current_user_dep = Annotated[User, Depends(get_current_user)]
 @router.post("/login", response_model=TokenResponse)
 async def login_route(
     form_data: Annotated[OAuth2PasswordRequestForm],
-    session: AsyncSession = Session,
+    db=Session,
 ):
     """
     Login compatível com OAuth2.
@@ -30,7 +30,7 @@ async def login_route(
     - **username:** Seu nome de usuário
     - **password:** Sua senha
     """
-    access_token = await login(form_data.username, form_data.password, session)
+    access_token = await login(form_data.username, form_data.password, db)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

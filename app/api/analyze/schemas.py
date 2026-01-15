@@ -46,3 +46,19 @@ class AnalyzeResponse(BaseModel):
                 {"status": "Falha ao iniciar o processamento", "error": "Erro na fila"},
             ]
         }
+
+
+class ReportResponse(BaseModel):
+    """Response para relatório."""
+
+    task_id: str = Field(..., description="ID da tarefa.")
+    topic: str = Field(..., description="Tópico analisado.")
+    content: str = Field(..., description="Conteúdo do relatório.")
+    owner: int = Field(..., description="ID do proprietário.")
+
+
+class MyReportsResponse(BaseModel):
+    """Response para lista de relatórios do usuário."""
+
+    user: int = Field(..., description="ID do usuário.")
+    reports: list[str] = Field(..., description="Lista de task_ids dos relatórios.")

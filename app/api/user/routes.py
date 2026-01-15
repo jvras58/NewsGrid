@@ -14,19 +14,22 @@ from app.models.user import User
 
 router = APIRouter()
 
+Session = Annotated[AsyncSession, Depends(get_db)]
+get_current_user_dep = Annotated[User, Depends(get_current_user)]
+
 
 @router.post("/", response_model=UserResponse)
 async def create_user(
     user: UserCreate,
-    session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    db=Session,
+    current_user=get_current_user_dep,
 ):
-    return await create_user_logic(user.username, user.email, user.password, session)
+    return await create_user_logic(user.username, user.email, user.password, db)
 
 
 @router.get("/")
 async def list_users(
-    session: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    db=Session,
+    current_user=get_current_user_dep,
 ):
-    return await list_users_logic(session)
+    return await list_users_logic(db)

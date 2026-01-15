@@ -13,7 +13,7 @@ from app.models.user import User
 from utils.logging import get_logger
 
 from .controller import get_report_logic, list_my_reports_logic, request_analysis_logic
-from .schemas import AnalyzeRequest, AnalyzeResponse
+from .schemas import AnalyzeRequest, AnalyzeResponse, MyReportsResponse, ReportResponse
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -47,11 +47,11 @@ async def request_analysis(
     return AnalyzeResponse(**result)
 
 
-@router.get("/report/{task_id}")
+@router.get("/report/{task_id}", response_model=ReportResponse)
 async def get_analysis_report(
     task_id: str,
     current_user: get_current_user_dep,
-    db: AsyncSession = Session,
+    db=Session,
 ):
     """
     Obtém relatório por task_id.
@@ -68,10 +68,10 @@ async def get_analysis_report(
         ) from e
 
 
-@router.get("/my-reports")
+@router.get("/my-reports", response_model=MyReportsResponse)
 async def list_my_reports(
     current_user: get_current_user_dep,
-    db: AsyncSession = Session,
+    db=Session,
 ):
     """
     Lista relatórios do usuário.

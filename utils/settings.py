@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     report_cache_ttl_seconds: int = 7200
 
     # Configurações do banco de dados SQLAlchemy
-    database_url: str = "sqlite+aiosqlite:///./app.db"
+    database_url: str = "sqlite+aiosqlite:///./database.db"
     echo_sql: bool = False
 
     # Configurações de segurança

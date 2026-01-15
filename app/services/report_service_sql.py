@@ -58,12 +58,11 @@ class ReportServiceSQL:
         Returns:
             Report ou None.
         """
-        stmt = (
+        result = await session.execute(
             select(Report)
             .options(joinedload(Report.owner))
             .where(Report.task_id == task_id)
         )
-        result = await session.execute(stmt)
         return result.unique().scalar_one_or_none()
 
     @staticmethod

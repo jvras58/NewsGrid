@@ -17,7 +17,7 @@ Session = Annotated[AsyncSession, Depends(get_db)]
 @router.get("/status/{task_id}", response_model=TaskStatusResponse)
 async def get_task_status(
     task_id: str,
-    db=Session,
+    db: Session,
 ):
     """
     Obtém o status de uma tarefa.

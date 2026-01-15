@@ -93,8 +93,7 @@ class AuthServiceSQL:
         Returns:
             User ou None.
         """
-        stmt = select(User).where(User.username == username)
-        result = await session.execute(stmt)
+        result = await session.execute(select(User).where(User.username == username))
         return result.scalar_one_or_none()
 
     @staticmethod
@@ -109,8 +108,7 @@ class AuthServiceSQL:
         Returns:
             User ou None.
         """
-        stmt = select(User).where(User.email == email)
-        result = await session.execute(stmt)
+        result = await session.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
     @staticmethod
@@ -125,8 +123,7 @@ class AuthServiceSQL:
         Returns:
             User ou None.
         """
-        stmt = select(User).where(User.id == user_id)
-        result = await session.execute(stmt)
+        result = await session.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
     @staticmethod
@@ -140,8 +137,7 @@ class AuthServiceSQL:
         Returns:
             list[str]: Lista de usernames.
         """
-        stmt = select(User.username)
-        result = await session.execute(stmt)
+        result = await session.execute(select(User.username))
         return result.scalars().all()
 
     @staticmethod
@@ -155,7 +151,6 @@ class AuthServiceSQL:
         Returns:
             int: Número de usuários.
         """
-        stmt = select(User)
-        result = await session.execute(stmt)
+        result = await session.execute(select(User))
         users = result.scalars().all()
         return len(users)

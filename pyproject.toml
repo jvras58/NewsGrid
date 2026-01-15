@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "agno>=2.3.24",
+    "aiosqlite>=0.22.1",
+    "alembic>=1.18.1",
     "brave-search>=0.1.0",
     "fastapi>=0.128.0",
     "groq>=1.0.0",
@@ -31,7 +33,17 @@ dev = [
 pythonpath = ["."]
 
 [tool.ruff]
-exclude = [".git", ".venv", "__pycache__", "build", "dist", "htmlcov", "logs"]
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "htmlcov",
+    "logs",
+    ".pytest_cache",
+    "alembic",
+]
 
 # Mesmo que Black
 line-length = 88

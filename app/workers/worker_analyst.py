@@ -7,6 +7,7 @@ import json
 
 from app.agents.agent_analyst import AnalystAgent
 from app.core.database import async_session
+from app.services.report_cache_service import make_cache_key, set_cached_report
 from app.services.report_service_sql import ReportServiceSQL
 from app.services.task_status_service import task_status_service
 from utils.base_worker import BaseWorker
@@ -62,6 +63,19 @@ class AnalystWorker(BaseWorker):
                     )
 
             asyncio.run(save_report())
+
+            # Cache o relatório
+            cache_key = make_cache_key(topic)
+            set_cached_report(
+                cache_key,
+                {
+                    "task_id": task_id,
+                    "topic": topic,
+                    "content": final_report,
+                    "owner": user_id,
+                },
+            )
+
             task_status_service.set_completed(task_id)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)

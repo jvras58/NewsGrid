@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     # TTL for task status (24 hours in seconds)
     task_status_ttl_seconds: int = 86400
 
+    # TTL for report cache (2 hours in seconds)
+    report_cache_ttl_seconds: int = 7200
+
     # Configurações do banco de dados SQLAlchemy
     database_url: str = "sqlite+aiosqlite:///./app.db"
     echo_sql: bool = False

@@ -2,7 +2,7 @@
 Schemas para requisições de análise.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AnalyzeRequest(BaseModel):

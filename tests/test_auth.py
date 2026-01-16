@@ -1,17 +1,22 @@
 """Testes de autenticação JWT."""
 
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import ANY, Mock, patch
 
 import jwt
 
 from utils.settings import settings
 
 
-@patch("app.api.auth.controller.AuthService.authenticate_by_token")
-def test_login_success(mock_auth, client):
+@patch("app.api.auth.controller.AuthServiceSQL.get_user_by_username")
+@patch("app.api.auth.controller.AuthServiceSQL.verify_password")
+def test_login_success(mock_verify, mock_get, client):
     """Testa login bem-sucedido retornando JWT."""
-    mock_auth.return_value = "admin"
+    mock_user = Mock()
+    mock_user.id = 1
+    mock_user.username = "admin"
+    mock_get.return_value = mock_user
+    mock_verify.return_value = True
     response = client.post(
         "/api/v1/auth/login",
         data={"username": "admin", "password": "valid_token"},
@@ -20,42 +25,46 @@ def test_login_success(mock_auth, client):
     data = response.json()
     assert "access_token" in data
     assert data["token_type"] == "bearer"
-    mock_auth.assert_called_once_with("valid_token")
+    mock_get.assert_called_once_with(ANY, "admin")
+    mock_verify.assert_called_once()
 
 
-@patch("app.api.auth.controller.AuthService.authenticate_by_token")
-def test_login_failure_invalid_token(mock_auth, client):
+@patch("app.api.auth.controller.AuthServiceSQL.get_user_by_username")
+def test_login_failure_invalid_token(mock_get, client):
     """Testa login com token inválido."""
-    mock_auth.side_effect = ValueError("Token inválido")
+    mock_get.return_value = None
     response = client.post(
         "/api/v1/auth/login",
-        data={"username": "admin", "password": "invalid_token"},
+        data={"username": "admin", "password": "invalid"},
     )
     assert response.status_code == 401
     data = response.json()
-    assert "detail" in data
     assert data["detail"] == "Credenciais inválidas"
 
 
-@patch("app.api.auth.controller.AuthService.authenticate_by_token")
-def test_login_failure_wrong_user(mock_auth, client):
-    """Testa login com token que pertence a outro usuário."""
-    mock_auth.return_value = "outro_usuario"
+@patch("app.api.auth.controller.AuthServiceSQL.get_user_by_username")
+@patch("app.api.auth.controller.AuthServiceSQL.verify_password")
+def test_login_failure_wrong_user(mock_verify, mock_get, client):
+    """Testa login com usuário errado."""
+    mock_user = Mock()
+    mock_user.id = 1
+    mock_get.return_value = mock_user
+    mock_verify.return_value = False
     response = client.post(
         "/api/v1/auth/login",
-        data={"username": "admin", "password": "token_de_outro"},
+        data={"username": "admin", "password": "wrong"},
     )
     assert response.status_code == 401
     data = response.json()
-    assert data["detail"] == "Token não pertence a este usuário"
+    assert data["detail"] == "Credenciais inválidas"
 
 
-def test_get_current_user(authenticated_client, mock_username):
+def test_get_current_user(authenticated_client):
     """Testa endpoint /me com usuário autenticado."""
     response = authenticated_client.get("/api/v1/auth/me")
     assert response.status_code == 200
     data = response.json()
-    assert data == {"username": "test_user", "status": "authenticated via JWT"}
+    assert data == {"username": "testuser", "status": "authenticated via JWT"}
 
 
 def test_get_current_user_unauthorized(client):

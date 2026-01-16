@@ -5,6 +5,7 @@ Worker responsável por realizar pesquisas detalhadas sobre tópicos fornecidos.
 import json
 
 from app.agents.agent_research import ResearchAgent
+from app.services.task_status_service import task_status_service
 from utils.base_worker import BaseWorker
 from utils.send_to_queue import send_to_queue
 
@@ -31,11 +32,13 @@ class ResearchWorker(BaseWorker):
         topic = data["topic"]
         task_id = data["task_id"]
 
-        self.logger.info(f"Pesquisando sobre: {topic}")
-
         try:
+            task_status_service.set_researching(task_id)
+            self.logger.info(f"Pesquisando sobre: {topic}")
+
             response = self.agent.run(f"Pesquise as últimas notícias sobre: {topic}")
 
+            task_status_service.set_analyzing(task_id)
             next_stage_payload = {
                 "task_id": task_id,
                 "topic": topic,
@@ -48,6 +51,7 @@ class ResearchWorker(BaseWorker):
             self.logger.info("Pesquisa concluída e enviada para análise.")
 
         except Exception as e:
+            task_status_service.set_failed(task_id)
             self.logger.error(
                 f"Erro ao pesquisar tópico '{topic}' (task_id: {task_id}): {e}"
             )

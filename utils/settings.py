@@ -51,8 +51,27 @@ class Settings(BaseSettings):
     redis_db: int = 0
     redis_password: str | None = None
 
+    # Task Status Constants
+    task_status_researching: str = "RESEARCHING"
+    task_status_analyzing: str = "ANALYZING"
+    task_status_completed: str = "COMPLETED"
+    task_status_failed: str = "FAILED"
+
+    # Task Status Key Pattern
+    task_status_key_pattern: str = "task:{task_id}"
+
+    # TTL for task status (24 hours in seconds)
+    task_status_ttl_seconds: int = 86400
+
+    # TTL for report cache (2 hours in seconds)
+    report_cache_ttl_seconds: int = 7200
+
+    # Configurações do banco de dados SQLAlchemy
+    database_url: str = "sqlite+aiosqlite:///./database.db"
+    echo_sql: bool = False
+
     # Configurações de segurança
-    default_token: str = "12345678-1234-5678-9012-123456789012"
+    default_user_password: str = "admin123"
 
     # Configurações JWT
     jwt_secret_key: str = "chave-secreta-super-segura"

@@ -19,5 +19,5 @@ htmlcov/
 .coverage
 .pytest_cache/
 
-# Test files
-report_123.md
+# Database files
+*.db

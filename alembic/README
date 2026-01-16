@@ -1,0 +1,137 @@
+# Alembic - Gerenciamento de Migrações de Banco de Dados
+
+Este diretório contém as configurações e migrações do Alembic para o projeto NewsGrid.
+
+## Visão Geral
+
+O Alembic é uma ferramenta de migração de banco de dados para SQLAlchemy. Ele permite versionar o esquema do banco de dados e aplicar mudanças de forma controlada.
+
+## Gerenciamento de Modelos
+
+Os modelos do SQLAlchemy estão localizados em `app/models/`. Cada arquivo Python define uma ou mais classes que herdam de `Base` (definido em `app/models/base.py`).
+
+### Criando um Novo Modelo
+
+1. Crie um novo arquivo em `app/models/` (ex: `new_model.py`)
+2. Defina a classe herdando de `Base`
+3. Adicione as colunas usando `Mapped` e `mapped_column`
+4. Atualize `alembic/env.py` se necessário para incluir o novo módulo na lista `app_models`
+
+Exemplo:
+
+```python
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.models.base import Base
+
+class NewModel(Base):
+    __tablename__ = "new_models"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+```
+
+### Relacionamentos
+
+Use `relationship` para definir relacionamentos entre modelos. Certifique-se de que ambos os lados do relacionamento estejam definidos.
+
+## Configuração do Autogenerate
+
+O Alembic pode gerar migrações automaticamente comparando os modelos atuais com o esquema do banco de dados.
+
+### Como Usar o Autogenerate
+
+1. Certifique-se de que todos os modelos estão importáveis (sem erros de importação)
+2. Execute: `uv run alembic revision --autogenerate -m "descrição da mudança"`
+3. Revise o arquivo de migração gerado em `alembic/versions/`
+4. Ajuste manualmente se necessário
+5. Execute: `uv run alembic upgrade head` para aplicar a migração
+
+### Limitações do Autogenerate
+
+- Não detecta renomeações de colunas/tabelas
+- Pode não detectar mudanças complexas
+- Sempre revise e teste as migrações geradas
+
+### Migrações Manuais
+
+Para mudanças complexas, crie migrações manuais:
+
+```bash
+uv run alembic revision -m "descrição da mudança"
+```
+
+Edite o arquivo gerado para adicionar os comandos SQL necessários.
+
+## Ajustes no alembic.ini
+
+O arquivo `alembic.ini` contém configurações globais.
+
+### Configuração Automática da URL do Banco
+
+A URL do banco de dados é configurada automaticamente no `env.py` a partir do `settings.database_url`. O Alembic usa um engine async compatível com drivers como `aiosqlite`, seguindo as melhores práticas para projetos SQLAlchemy async.
+
+Isso significa que você não precisa alterar o `alembic.ini` quando mudar o banco de dados - basta atualizar o `.env` ou `settings.py`.
+
+### Outras Configurações Importantes
+
+- `script_location`: Caminho para os scripts de migração (normalmente `%(here)s/alembic`)
+- `prepend_sys_path`: Caminhos adicionais para importações
+- `output_encoding`: Codificação dos arquivos de migração
+
+## Comandos Comuns
+
+### Verificar Status das Migrações
+```bash
+uv run alembic current
+uv run alembic history
+uv run alembic show <revision>
+```
+
+### Criar Nova Migração
+```bash
+uv run alembic revision --autogenerate -m "descrição"
+# ou
+uv run alembic revision -m "descrição"
+```
+
+### Aplicar Migrações
+```bash
+uv run alembic upgrade head  # Para a versão mais recente
+uv run alembic upgrade +1    # Uma versão para frente
+uv run alembic upgrade <revision>  # Para uma revisão específica
+```
+
+### Reverter Migrações
+```bash
+uv run alembic downgrade -1  # Uma versão para trás
+uv run alembic downgrade <revision>  # Para uma revisão específica
+```
+
+### Resetar Banco de Dados
+```bash
+uv run alembic downgrade base  # Remove todas as migrações
+```
+
+## Boas Práticas
+
+1. Sempre revise as migrações geradas automaticamente
+2. Teste as migrações em um banco de desenvolvimento antes de aplicar em produção
+3. Use mensagens descritivas nas migrações
+4. Mantenha o histórico de migrações versionado junto com o código
+5. Evite mudanças destrutivas sem backup
+
+## Solução de Problemas
+
+### Erro de Importação de Modelos
+- Verifique se todos os módulos em `app_models` em `env.py` existem e são importáveis
+- Certifique-se de que as dependências (como `aiosqlite`) estão instaladas
+
+### Migração Vazia
+- Verifique se os modelos estão sendo importados corretamente
+- Execute `uv run python -c "from app.models import *"` para testar imports
+
+### Conflitos de Migração
+- Use `uv run alembic merge` para mesclar heads conflitantes
+- Ou resolva manualmente editando as migrações

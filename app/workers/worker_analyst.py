@@ -2,10 +2,15 @@
 Worker responsável por analisar dados de pesquisa bruta e gerar relatórios executivos.
 """
 
+import asyncio
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 from app.agents.agent_analyst import AnalystAgent
-from app.services.report_service import ReportService
+from app.core.database import async_session
+from app.services.report_cache_service import make_cache_key, set_cached_report
+from app.services.report_service_sql import ReportServiceSQL
+from app.services.task_status_service import task_status_service
 from utils.base_worker import BaseWorker
 
 
@@ -34,9 +39,20 @@ class AnalystWorker(BaseWorker):
 
         user_id = data.get("user_id")
 
-        self.logger.info(f"Analisando dados sobre: {topic}...")
+        async def save_report():
+            async with async_session() as session:
+                await ReportServiceSQL.create_report(
+                    session,
+                    task_id,
+                    int(user_id) if user_id else None,
+                    topic,
+                    final_report,
+                )
 
         try:
+            task_status_service.set_analyzing(task_id)
+            self.logger.info(f"Analisando dados sobre: {topic}...")
+
             prompt = (
                 f"Analise os seguintes dados brutos coletados sobre '{topic}':\n\n"
                 f"{raw_research}\n\n"
@@ -46,15 +62,29 @@ class AnalystWorker(BaseWorker):
 
             response = self.agent.run(prompt)
             final_report = response.content
+            with ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, save_report())
+                future.result()
 
-            ReportService.save(
-                task_id=task_id, topic=topic, content=final_report, user_id=user_id
+            # Cache o relatório
+            cache_key = make_cache_key(topic)
+            set_cached_report(
+                cache_key,
+                {
+                    "task_id": task_id,
+                    "topic": topic,
+                    "content": final_report,
+                    "owner": user_id,
+                },
             )
 
+            task_status_service.set_completed(task_id)
+
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            self.logger.info("Análise concluída e salva via Service.")
+            self.logger.info("Análise concluída e salva no Postgres.")
 
         except Exception as e:
+            task_status_service.set_failed(task_id)
             self.logger.error(f"Erro na análise de '{topic}' (task_id: {task_id}): {e}")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 

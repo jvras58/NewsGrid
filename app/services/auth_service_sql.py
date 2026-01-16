@@ -14,6 +14,81 @@ logger = get_logger("auth_service_sql")
 
 
 class AuthServiceSQL:
+    """
+    Serviço SQL para operações de autenticação e usuários.
+
+    Esta classe pode ser usada de duas formas:
+    1. Métodos estáticos (compatibilidade): AuthServiceSQL.create_user(session, ...)
+    2. Instância com sessão injetada: service = AuthServiceSQL(session); service.create(...)
+    """
+
+    def __init__(self, session: AsyncSession | None = None):
+        """
+        Inicializa o serviço com uma sessão opcional.
+
+        Args:
+            session: Sessão async do SQLAlchemy (opcional para uso com métodos estáticos).
+        """
+        self._session = session
+
+    # =========================================================================
+    # Métodos de Instância (Repository Pattern)
+    # =========================================================================
+
+    async def create(self, username: str, email: str, password: str) -> dict:
+        """
+        Cria um novo usuário (método de instância).
+
+        Args:
+            username: Nome de usuário.
+            email: Email.
+            password: Senha em plain text.
+
+        Returns:
+            dict: {'status': 'created', 'user_id': int}
+        """
+        if self._session is None:
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
+        return await self.create_user(self._session, username, email, password)
+
+    async def get_by_id(self, user_id: int) -> User | None:
+        """Busca usuário por ID (método de instância)."""
+        if self._session is None:
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
+        return await self.get_user_by_id(self._session, user_id)
+
+    async def get_by_username(self, username: str) -> User | None:
+        """Busca usuário por username (método de instância)."""
+        if self._session is None:
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
+        return await self.get_user_by_username(self._session, username)
+
+    async def get_by_email(self, email: str) -> User | None:
+        """Busca usuário por email (método de instância)."""
+        if self._session is None:
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
+        return await self.get_user_by_email(self._session, email)
+
+    async def list_all_usernames(self) -> list[str]:
+        """Lista todos os usernames (método de instância)."""
+        if self._session is None:
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
+        return await self.list_usernames(self._session)
+
+    # =========================================================================
+    # Métodos Estáticos (Utilitários)
+    # =========================================================================
+
     @staticmethod
     def hash_password(password: str) -> str:
         """

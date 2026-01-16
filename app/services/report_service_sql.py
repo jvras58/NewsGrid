@@ -54,7 +54,9 @@ class ReportServiceSQL:
             ReportCreationError: Se falhar ao criar.
         """
         if self._session is None:
-            raise ValueError("Sessão não configurada. Use o construtor ou métodos estáticos.")
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
         return await self.create_report(self._session, task_id, user_id, topic, content)
 
     async def get_by_task_id(self, task_id: str) -> Report | None:
@@ -68,7 +70,9 @@ class ReportServiceSQL:
             Report ou None.
         """
         if self._session is None:
-            raise ValueError("Sessão não configurada. Use o construtor ou métodos estáticos.")
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
         return await self.get_report_by_task_id(self._session, task_id)
 
     async def list_by_user(
@@ -91,8 +95,12 @@ class ReportServiceSQL:
             (list[Report], total_count)
         """
         if self._session is None:
-            raise ValueError("Sessão não configurada. Use o construtor ou métodos estáticos.")
-        return await self.list_reports(self._session, user_id, topic_filter, page, per_page)
+            raise ValueError(
+                "Sessão não configurada. Use o construtor ou métodos estáticos."
+            )
+        return await self.list_reports(
+            self._session, user_id, topic_filter, page, per_page
+        )
 
     # =========================================================================
     # Métodos Estáticos (Compatibilidade)

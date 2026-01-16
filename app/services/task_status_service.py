@@ -64,14 +64,14 @@ class TaskStatusService:
         return set_task_status(task_id, settings.task_status_failed)
 
     @staticmethod
-    def get_status(task_id: str) -> [str]:
+    def get_status(task_id: str) -> [str] | None:
         """Obtém o status atual da tarefa.
 
         Args:
             task_id (str): ID da tarefa
 
         Returns:
-            Optional[str]: Status da tarefa ou None se não encontrado
+            [str]: Status da tarefa ou None se não encontrado
         """
         return get_task_status(task_id)
 

@@ -38,7 +38,7 @@ Siga estes passos simples para configurar o projeto:
    ```sh
    docker compose up rabbitmq
    ```
-   > Para utilizar todo o projeto dockerizado siga para docs [Usando-Docker](docs/DOCKERIZADO.md)
+   > Para utilizar todo o projeto dockerizado siga para docs Usando-Docker
 
 ## 🚀 Uso
 
@@ -56,14 +56,9 @@ Siga estes passos simples para configurar o projeto:
    make run
    ```
 
-### 🔐 Autenticação Inicial
+### 🔐 Autenticação
 
-Ao iniciar a aplicação pela primeira vez, um usuário administrador padrão é criado automaticamente se nenhum usuário existir.
-
-- **Usuário Padrão:** `admin`
-- **Token Padrão:** `12345678-1234-5678-9012-123456789012`
-
-Use este token para fazer login via `/api/v1/auth/login`. Para mais detalhes, consulte [docs/AUTH.MD](docs/AUTH.MD).
+Para fazer login via `/api/v1/auth/login`. Para mais detalhes, consulte [AUTH.MD](docs/AUTH.MD).
 
 ## 🧪 Testes
 
@@ -74,7 +69,7 @@ uv run pytest
 ```
 >Dependências instaladas via `uv sync --group dev` (para incluir ferramentas de teste como pytest).
 
-Para mais detalhes sobre estrutura, execução e boas práticas, consulte [docs/TESTES.MD](docs/TESTES.MD).
+Para mais detalhes sobre estrutura, execução e boas práticas, consulte TESTES.MD.
 
 ## 📁 Estrutura do Projeto
 
@@ -82,35 +77,67 @@ Para mais detalhes sobre estrutura, execução e boas práticas, consulte [docs/
 ├── .env-sample                   # Exemplo de arquivo de variáveis de ambiente
 ├── .gitignore                    # Arquivos ignorados pelo Git
 ├── .python-version               # Versão do Python
+├── alembic.ini                   # Configuração do Alembic para migrações de banco
 ├── compose.yml                   # Configuração do Docker Compose 🐳
+├── Dockerfile                    # Dockerfile para containerização da aplicação
 ├── makefile                      # Comandos de automação 🔧
 ├── pyproject.toml                # Dependências do projeto 📦
 ├── README.md                     # Este arquivo
+├── .github/
+│   └── workflows/                # Workflows do GitHub Actions para CI/CD
+├── alembic/                      # Migrações de banco de dados
+│   ├── env.py
+│   ├── README                    # Comandos do Alembic 
+│   ├── script.py.mako
+│   └── versions/
 ├── app/
 │   ├── startup.py               # Inicialização da aplicação FastAPI 🚀
 │   ├── agents/
 │   │   ├── agent_analyst.py     # Agente analista de mercado 📈
-│   │   ├── agent_research.py    # Agente pesquisador 🔍
+│   │   └── agent_research.py    # Agente pesquisador 🔍
 │   ├── api/
-│   │   └── analyze/
-│   │       ├── controller.py      # Lógica de negócio da análise 🧠
-│   │       ├── routes.py          # Rotas da API 🛤️
-│   │       ├── schemas.py8        # Schemas de validação ✅
+│   │   ├── analyze/
+│   │   │   ├── controller.py    # Lógica de negócio da análise 🧠
+│   │   │   ├── routes.py        # Rotas da API 🛤️
+│   │   │   └── schemas.py       # Schemas de validação ✅
+│   │   ├── auth/
+│   │   ├── status/
+│   │   └── user/
+│   ├── core/                    # Sessão do ORM (SQLALCHEMY 2.0)
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── reports.py
+│   │   └── user.py
+│   ├── services/
 │   └── workers/
 │       ├── worker_analyst.py     # Worker para análise e relatórios 📊
-│       ├── worker_researcher.py  # Worker para pesquisa de notícias 🔎
+│       └── worker_researcher.py  # Worker para pesquisa de notícias 🔎
 ├── docs/                         # Documentos do projeto 📦
+│   ├── AUTH.MD                   # Documentação de autenticação
+│   ├── CHECKPOINT.MD             # Checkpoints de melhorias
+│   ├── CONCEPTS.MD               # Conceitos teóricos vs. prática
+│   ├── DOCKERIZADO.md            # Guia para execução com Docker
+│   ├── RUFFS.MD                  # Documentação do Ruff (linter/formatador)
+│   └── TESTES.MD                 # Documentação de testes
 ├── logs/                         # Diretório para logs 🔎
-├── scripts/                      # Diretório para scripts
-└── utils/
-    ├── base_agent.py             # base para agentes 🧠
-    ├── base_worker.py            # base para workers 🔧
+├── scripts/                      # Diretório para scripts utilitários
+└── tests/                        # Testes automatizados
+    ├── conftest.py               # Configurações compartilhadas para testes
+    ├── test_analyze.py           # Testes da API de análise
+    ...
+└── utils/                        # Utilitários globais
+    ├── base_agent.py             # Base para agentes 🧠
+    ├── base_worker.py            # Base para workers 🔧
     ├── broker.py                 # Utilitários para conexão com RabbitMQ
+    ├── exceptions.py             # Exceções reutilizáveis
     ├── llm.py                    # Configuração de agentes LLM 🤖
     ├── logging.py                # Configuração de logging
+    ├── redis_client.py           # Cliente Redis
     ├── reporting.py              # Utilitários para geração de relatórios
+    ├── security.py               # Utilitários de segurança (JWT)
     ├── send_to_queue.py          # Envio de mensagens para RabbitMQ 📨
     ├── settings.py               # Configurações globais ⚙️
+    └── tasks_controller.py       # Controle de tarefas no Redis
 ```
 
 ## 📚 Referências

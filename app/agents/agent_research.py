@@ -4,7 +4,7 @@ Agente Pesquisador
 
 from agno.tools.bravesearch import BraveSearchTools
 
-from utils.base_agent import BaseAgent
+from app.agents.base import BaseAgent
 from utils.settings import settings
 
 

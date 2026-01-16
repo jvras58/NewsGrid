@@ -2,7 +2,7 @@
 Agente Analista de Mercado
 """
 
-from utils.base_agent import BaseAgent
+from app.agents.base import BaseAgent
 
 
 class AnalystAgent(BaseAgent):

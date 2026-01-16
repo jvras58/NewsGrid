@@ -4,7 +4,7 @@ from app.agents.agent_analyst import AnalystAgent
 from app.agents.agent_research import ResearchAgent
 
 
-@patch("utils.base_agent.create_agent")
+@patch("app.agents.base.create_agent")
 def test_research_agent_init(mock_create_agent):
     mock_agent = Mock()
     mock_create_agent.return_value = mock_agent
@@ -13,7 +13,7 @@ def test_research_agent_init(mock_create_agent):
     assert agent.agent == mock_agent
 
 
-@patch("utils.base_agent.create_agent")
+@patch("app.agents.base.create_agent")
 def test_research_agent_run(mock_create_agent):
     mock_agent = Mock()
     mock_agent.run.return_value = Mock(content="Mocked research")
@@ -23,7 +23,7 @@ def test_research_agent_run(mock_create_agent):
     assert response.content == "Mocked research"
 
 
-@patch("utils.base_agent.create_agent")
+@patch("app.agents.base.create_agent")
 def test_analyst_agent_init(mock_create_agent):
     mock_agent = Mock()
     mock_create_agent.return_value = mock_agent
@@ -32,7 +32,7 @@ def test_analyst_agent_init(mock_create_agent):
     assert agent.agent == mock_agent
 
 
-@patch("utils.base_agent.create_agent")
+@patch("app.agents.base.create_agent")
 def test_analyst_agent_run(mock_create_agent):
     mock_agent = Mock()
     mock_agent.run.return_value = Mock(content="Mocked analysis")

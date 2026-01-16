@@ -2,9 +2,20 @@
 Dependencies para FastAPI.
 """
 
+from typing import Annotated
+
 from fastapi import Depends, HTTPException, Request
 
+from app.api.auth.controller import get_current_user
+from app.models import User
 from app.services.rate_limit_service import check_rate_limit, get_user_limit
+
+
+async def get_current_username(user: Annotated[User, Depends(get_current_user)]) -> str:
+    """
+    Dependency para obter o username do usuário autenticado.
+    """
+    return user.username
 
 
 def get_rate_limit_dependency():
@@ -13,7 +24,7 @@ def get_rate_limit_dependency():
     """
 
     async def check_rate_limit_dep(
-        request: Request, username: str = Depends(get_current_user_placeholder)
+        request: Request, username: Annotated[str, Depends(get_current_username)]
     ):
         limit = get_user_limit(username)
         allowed, count, reset_in = check_rate_limit(username, limit)
@@ -25,9 +36,3 @@ def get_rate_limit_dependency():
         return True
 
     return check_rate_limit_dep
-
-
-# TODO: Placeholder para get_current_user (adaptar do auth)
-def get_current_user_placeholder(request: Request) -> str:
-    # Simulação: pegar do header ou token
-    return request.headers.get("X-Username", "anonymous")

@@ -4,6 +4,7 @@ Worker responsável por analisar dados de pesquisa bruta e gerar relatórios exe
 
 import asyncio
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 from app.agents.agent_analyst import AnalystAgent
 from app.core.database import async_session
@@ -38,6 +39,16 @@ class AnalystWorker(BaseWorker):
 
         user_id = data.get("user_id")
 
+        async def save_report():
+            async with async_session() as session:
+                await ReportServiceSQL.create_report(
+                    session,
+                    task_id,
+                    int(user_id) if user_id else None,
+                    topic,
+                    final_report,
+                )
+
         try:
             task_status_service.set_analyzing(task_id)
             self.logger.info(f"Analisando dados sobre: {topic}...")
@@ -51,18 +62,9 @@ class AnalystWorker(BaseWorker):
 
             response = self.agent.run(prompt)
             final_report = response.content
-
-            async def save_report():
-                async with async_session() as session:
-                    await ReportServiceSQL.create_report(
-                        session,
-                        task_id,
-                        int(user_id) if user_id else None,
-                        topic,
-                        final_report,
-                    )
-
-            asyncio.run(save_report())
+            with ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, save_report())
+                future.result()
 
             # Cache o relatório
             cache_key = make_cache_key(topic)

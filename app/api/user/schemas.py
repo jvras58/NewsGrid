@@ -26,3 +26,4 @@ class UserResponse(BaseModel):
     username: str
     email: str
     status: str
+    user_id: int

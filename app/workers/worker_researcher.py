@@ -31,6 +31,7 @@ class ResearchWorker(BaseWorker):
         data = json.loads(body)
         topic = data["topic"]
         task_id = data["task_id"]
+        user_id = data.get("user_id")
 
         try:
             task_status_service.set_researching(task_id)
@@ -43,6 +44,7 @@ class ResearchWorker(BaseWorker):
                 "task_id": task_id,
                 "topic": topic,
                 "raw_research": response.content,
+                "user_id": user_id,
             }
 
             send_to_queue("queue_analysis", next_stage_payload)

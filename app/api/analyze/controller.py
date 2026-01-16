@@ -67,13 +67,13 @@ async def get_report_logic(task_id: str, user_id: int, db: AsyncSession):
         report = await ReportServiceSQL.get_report_by_task_id(db, task_id)
         if not report:
             raise ValueError("Relatório não encontrado")
-        if report.user_id != user_id:
+        if report.owner_id != user_id:
             raise ValueError("Acesso negado ao relatório")
         return {
             "task_id": report.task_id,
             "topic": report.topic,
             "content": report.content,
-            "owner": report.user_id,
+            "owner": report.owner_id,
         }
     except ValueError as e:
         logger.error(f"Erro ao obter relatório {task_id}: {str(e)}")

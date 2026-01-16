@@ -18,6 +18,7 @@ def test_create_user_success(mock_create, authenticated_client):
         "username": "newuser",
         "email": "new@example.com",
         "status": "created",
+        "user_id": 123,
     }
     mock_create.assert_called_once()
 

@@ -46,7 +46,7 @@ def test_get_analysis_report_success(mock_get, authenticated_client, mock_userna
     mock_report.task_id = "test_task_id"
     mock_report.topic = "Test Topic"
     mock_report.content = "Test content"
-    mock_report.user_id = mock_username
+    mock_report.owner_id = mock_username
     mock_get.return_value = mock_report
     response = authenticated_client.get("/api/v1/analyze/report/test_task_id")
     assert response.status_code == 200

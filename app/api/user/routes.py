@@ -22,7 +22,6 @@ get_current_user_dep = Annotated[User, Depends(get_current_user)]
 async def create_user(
     user: UserCreate,
     db: Session,
-    current_user=get_current_user_dep,
 ):
     return await create_user_logic(user.username, user.email, user.password, db)
 

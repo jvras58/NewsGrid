@@ -46,11 +46,6 @@ worker2:
 workers:
 	set PYTHONPATH=. && uv run python -m scripts.start_workers
 
-
-# teste
-test-curl:
-	powershell -Command "$createResponse = Invoke-WebRequest -Method POST -Uri 'http://localhost:8000/api/v1/auth/create' -Body '{\"username\": \"testuser\"}' -ContentType 'application/json' -UseBasicParsing | ConvertFrom-Json; $token = $createResponse.token; Invoke-WebRequest -Method POST -Uri 'http://localhost:8000/api/v1/analyze/?topic=Bitcoin' -Headers @{'Authorization'='Bearer ' + $token} -UseBasicParsing"
-
 # cobertura de teste
 test-coverage:
 	set PYTHONPATH=. && uv run pytest --cov=app --cov-report=html

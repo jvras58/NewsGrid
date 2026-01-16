@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from app.services.report_service_sql import ReportServiceSQL
+from utils.exceptions import ReportCreationError
 
 
 @pytest.mark.asyncio
@@ -36,7 +37,7 @@ async def test_create_report_failure(mock_session_class):
     mock_session.commit = AsyncMock(side_effect=Exception("DB error"))
     mock_session.rollback = AsyncMock()
 
-    with pytest.raises(ValueError, match="Erro ao criar relatório"):
+    with pytest.raises(ReportCreationError):
         await ReportServiceSQL.create_report(
             mock_session, "task123", 1, "Test Topic", "Content"
         )

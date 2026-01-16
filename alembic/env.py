@@ -5,6 +5,9 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+from utils.logging import get_logger
+
+logger = get_logger("alembic_env_migration")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -32,8 +35,9 @@ app_models = [
 for module in app_models:
     try:
         loaded_module = importlib.import_module(module)
+        logger.info(f'Módulo importado com sucesso: {module}')
     except ModuleNotFoundError:
-        print(f'Could not import module {module}')   # TODO: log this
+        logger.error(f'Não foi possível importar o módulo: {module}')
 
 target_metadata = Base.metadata
 

@@ -6,7 +6,7 @@ import json
 
 from app.agents.agent_research import ResearchAgent
 from app.services.task_status_service import task_status_service
-from utils.base_worker import BaseWorker
+from app.workers.base import BaseWorker
 from utils.send_to_queue import send_to_queue
 
 

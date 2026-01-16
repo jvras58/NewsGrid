@@ -11,7 +11,7 @@ from app.core.database import async_session
 from app.services.report_cache_service import make_cache_key, set_cached_report
 from app.services.report_service_sql import ReportServiceSQL
 from app.services.task_status_service import task_status_service
-from utils.base_worker import BaseWorker
+from app.workers.base import BaseWorker
 
 
 class AnalystWorker(BaseWorker):

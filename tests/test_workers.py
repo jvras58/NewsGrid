@@ -5,7 +5,7 @@ from app.workers.worker_analyst import AnalystWorker
 from app.workers.worker_researcher import ResearchWorker
 
 
-@patch("utils.broker.get_rabbitmq_connection")
+@patch("app.workers.base.get_rabbitmq_connection")
 @patch("app.workers.worker_researcher.ResearchAgent")
 def test_research_worker_init(mock_agent_class, mock_connection):
     mock_agent = Mock()
@@ -15,7 +15,7 @@ def test_research_worker_init(mock_agent_class, mock_connection):
     assert worker.agent == mock_agent
 
 
-@patch("utils.broker.get_rabbitmq_connection")
+@patch("app.workers.base.get_rabbitmq_connection")
 @patch("app.workers.worker_researcher.ResearchAgent")
 @patch("app.workers.worker_researcher.send_to_queue")
 @patch("app.services.task_status_service.task_status_service.set_researching")
@@ -50,7 +50,7 @@ def test_research_worker_process_message(
     ch.basic_ack.assert_called_once()
 
 
-@patch("utils.broker.get_rabbitmq_connection")
+@patch("app.workers.base.get_rabbitmq_connection")
 @patch("app.workers.worker_analyst.AnalystAgent")
 @patch(
     "app.workers.worker_analyst.ReportServiceSQL.create_report", new_callable=AsyncMock

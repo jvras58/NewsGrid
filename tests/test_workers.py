@@ -40,7 +40,12 @@ def test_research_worker_process_message(
     mock_set_analyzing.assert_called_once_with("123")
     mock_send.assert_called_once_with(
         "queue_analysis",
-        {"task_id": "123", "topic": "Test", "raw_research": "Mocked research"},
+        {
+            "task_id": "123",
+            "topic": "Test",
+            "raw_research": "Mocked research",
+            "user_id": None,
+        },
     )
     ch.basic_ack.assert_called_once()
 

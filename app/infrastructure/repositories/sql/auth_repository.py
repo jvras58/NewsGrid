@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.auth.entities import AuthEntity
 from app.domain.auth.repositories import IAuthRepository
+from app.domain.user.entities import UserEntity
 from app.models.user import User as UserModel
 
 
@@ -20,6 +21,13 @@ class SQLAuthRepository(IAuthRepository):
     async def get_by_username(self, username: str) -> AuthEntity | None:
         result = await self.session.execute(
             select(UserModel).where(UserModel.username == username)
+        )
+        model = result.scalar_one_or_none()
+        return self._to_entity(model) if model else None
+
+    async def get_by_email(self, email: str) -> UserEntity | None:
+        result = await self.session.execute(
+            select(UserModel).where(UserModel.email == email)
         )
         model = result.scalar_one_or_none()
         return self._to_entity(model) if model else None

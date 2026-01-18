@@ -15,16 +15,17 @@ container = Container()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-async def login(username: str, password: str):
+async def login(username: str, password: str, session):
     use_case = container.login_use_case()
     try:
-        return await use_case.execute(username, password)
+        return await use_case.execute(session, username, password)
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e)) from e
 
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
+    session,
 ) -> UserEntity:
     credentials_exception = HTTPException(
         status_code=401,
@@ -36,6 +37,6 @@ async def get_current_user(
         if not username:
             raise credentials_exception
         use_case = container.get_current_user_use_case()
-        return await use_case.execute(username)
+        return await use_case.execute(session, username)
     except PyJWTError:
         raise credentials_exception from credentials_exception

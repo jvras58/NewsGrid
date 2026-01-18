@@ -19,10 +19,10 @@ get_current_user_dep = Annotated[UserEntity, Depends(get_current_user)]
 async def login_route(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session
 ):
-    access_token = await login(form_data.username, form_data.password)
+    access_token = await login(form_data.username, form_data.password, db)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me", response_model=CurrentUserResponse)
-async def get_me(current_user: get_current_user_dep):
+async def get_me(current_user: get_current_user_dep, db: Session):
     return {"username": current_user.username, "status": "authenticated via JWT"}

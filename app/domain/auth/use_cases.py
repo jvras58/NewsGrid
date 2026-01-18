@@ -12,8 +12,8 @@ class LoginUseCase:
     def __init__(self, auth_repo: IAuthRepository):
         self.auth_repo = auth_repo
 
-    async def execute(self, username: str, password: str) -> str:
-        auth_user = await self.auth_repo.get_by_username(username)
+    async def execute(self, session, username: str, password: str) -> str:
+        auth_user = await self.auth_repo.get_by_username(session, username)
         if not auth_user or not verify_password(auth_user.hashed_password, password):
             raise BadRequestError("Credenciais inválidas")
         return create_access_token(data={"sub": username})
@@ -24,9 +24,9 @@ class GetCurrentUserUseCase:
         self.auth_repo = auth_repo
         self.user_repo = user_repo
 
-    async def execute(self, username: str) -> UserEntity:
-        auth_user = await self.auth_repo.get_by_username(username)
+    async def execute(self, session, username: str) -> UserEntity:
+        auth_user = await self.auth_repo.get_by_username(session, username)
         if not auth_user:
             raise BadRequestError("Usuário não encontrado")
-        full_user = await self.user_repo.get_by_username(username)
+        full_user = await self.user_repo.get_by_username(session, username)
         return full_user

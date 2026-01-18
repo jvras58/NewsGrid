@@ -5,8 +5,8 @@ FastAPI Application Entry Point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.analyze.routes import router as analyze_router
 from app.api.auth.routes import router as auth_router
+from app.api.report.routes import router as analyze_router
 from app.api.status.routes import router as status_router
 from app.api.user.routes import router as users_router
 from utils.logging import setup_logging

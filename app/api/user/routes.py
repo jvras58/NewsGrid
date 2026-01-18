@@ -1,34 +1,28 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth.controller import get_current_user
-from app.api.user.controller import (
-    create_user_logic,
-    list_users_logic,
-)
-from app.api.user.schemas import UserCreate, UserResponse
-from app.core.database import get_db
-from app.models import User
+from app.api.user.controller import create_user_logic, get_user_logic, list_users_logic
+from app.api.user.schemas import UserCreate, UserDetailResponse, UserResponse
+from app.domain.user.entities import UserEntity
 
 router = APIRouter()
 
-Session = Annotated[AsyncSession, Depends(get_db)]
-get_current_user_dep = Annotated[User, Depends(get_current_user)]
+
+get_current_user_dep = Annotated[UserEntity, Depends(get_current_user)]
 
 
 @router.post("/", response_model=UserResponse)
-async def create_user(
-    user: UserCreate,
-    db: Session,
-):
-    return await create_user_logic(user.username, user.email, user.password, db)
+async def create_user(user: UserCreate):
+    return await create_user_logic(user)
 
 
-@router.get("/")
-async def list_users(
-    db: Session,
-    current_user=get_current_user_dep,
-):
-    return await list_users_logic(db)
+@router.get("/", response_model=list[UserResponse])
+async def list_users(current_user=get_current_user_dep):
+    return await list_users_logic()
+
+
+@router.get("/{user_id}", response_model=UserDetailResponse)
+async def get_user(user_id: int, current_user=get_current_user_dep):
+    return await get_user_logic(user_id)

@@ -1,24 +1,13 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.database import get_db
-from app.services.report_service_sql import ReportServiceSQL
-from app.services.task_status_service import task_status_service
-
-from .schemas import TaskStatusResponse
+from app.api.status.controller import get_task_status_logic
+from app.api.status.schemas import TaskStatusResponse
 
 router = APIRouter()
 
-Session = Annotated[AsyncSession, Depends(get_db)]
-
 
 @router.get("/status/{task_id}", response_model=TaskStatusResponse)
-async def get_task_status(
-    task_id: str,
-    db: Session,
-):
+async def get_task_status(task_id: str):
     """
     Obtém o status de uma tarefa.
 
@@ -26,11 +15,4 @@ async def get_task_status(
     - Retorna status e timestamp opcional se disponível
     - Erro 404 se tarefa não encontrada ou expirada
     """
-    status = task_status_service.get_status(task_id)
-    if not status:
-        raise HTTPException(status_code=404, detail="Task not found or expired")
-
-    report = await ReportServiceSQL.get_report_by_task_id(db, task_id)
-    created_at = report.created_at if report else None
-
-    return TaskStatusResponse(task_id=task_id, status=status, created_at=created_at)
+    return await get_task_status_logic(task_id)

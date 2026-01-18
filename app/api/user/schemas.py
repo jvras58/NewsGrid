@@ -1,5 +1,3 @@
-"""Schemas para gestão de usuários."""
-
 from pydantic import BaseModel, Field
 
 
@@ -25,5 +23,26 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     username: str
     email: str
-    status: str
     user_id: int
+
+    @classmethod
+    def from_entity(cls, entity) -> "UserResponse":
+        return cls(
+            username=entity.username,
+            email=entity.email,
+            user_id=entity.id,
+        )
+
+
+class UserDetailResponse(BaseModel):
+    user_id: int
+    username: str
+    email: str
+
+    @classmethod
+    def from_entity(cls, entity) -> "UserDetailResponse":
+        return cls(
+            user_id=entity.id,
+            username=entity.username,
+            email=entity.email,
+        )

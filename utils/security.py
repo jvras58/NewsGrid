@@ -3,6 +3,7 @@
 import logging
 from datetime import UTC, datetime, timedelta
 
+import bcrypt
 import jwt
 from jwt import PyJWTError
 
@@ -55,3 +56,30 @@ def extract_username(jwt_token: str) -> str:
     except PyJWTError as e:
         logging.error(f"JWT decoding error: {e}")
         return ""
+
+
+def hash_password(password: str) -> str:
+    """
+    Hashea a senha usando bcrypt.
+
+    Args:
+        password: Senha em plain text.
+
+    Returns:
+        str: Hash da senha.
+    """
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def verify_password(hashed_password: str, plain_password: str) -> bool:
+    """
+    Verifica se a senha plain corresponde ao hash.
+
+    Args:
+        hashed_password: Hash da senha.
+        plain_password: Senha em plain text.
+
+    Returns:
+        bool: True se corresponde.
+    """
+    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())

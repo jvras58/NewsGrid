@@ -1,6 +1,5 @@
 from dependency_injector import containers, providers
 
-from app.core.database import get_db
 from app.domain.auth.use_cases import GetCurrentUserUseCase, LoginUseCase
 from app.domain.report.use_cases import (
     GetReportUseCase,
@@ -25,16 +24,14 @@ from app.infrastructure.repositories.sql.user_repository import SQLUserRepositor
 
 
 class Container(containers.DeclarativeContainer):
-    db_session = providers.Resource(get_db)
-
     # Repositórios
 
-    auth_repo = providers.Factory(SQLAuthRepository, session=db_session)
-    user_repo = providers.Factory(SQLUserRepository, session=db_session)
+    auth_repo = providers.Factory(SQLAuthRepository)
+    user_repo = providers.Factory(SQLUserRepository)
+    report_repo = providers.Factory(SQLReportRepository)
 
     task_status_repo = providers.Singleton(RedisTaskStatusRepository)
     cache_repo = providers.Singleton(RedisCacheRepository)
-    report_repo = providers.Factory(SQLReportRepository, session=db_session)
 
     # Use Cases de Auth (usam auth_repo e, se necessário, user_repo)
     login_use_case = providers.Factory(LoginUseCase, auth_repo=auth_repo)

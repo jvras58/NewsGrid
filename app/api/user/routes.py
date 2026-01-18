@@ -9,7 +9,6 @@ from app.domain.user.entities import UserEntity
 
 router = APIRouter()
 
-
 get_current_user_dep = Annotated[UserEntity, Depends(get_current_user)]
 
 
@@ -19,10 +18,10 @@ async def create_user(user: UserCreate):
 
 
 @router.get("/", response_model=list[UserResponse])
-async def list_users(current_user=get_current_user_dep):
+async def list_users(current_user: get_current_user_dep):
     return await list_users_logic()
 
 
 @router.get("/{user_id}", response_model=UserDetailResponse)
-async def get_user(user_id: int, current_user=get_current_user_dep):
+async def get_user(user_id: int, current_user: get_current_user_dep):
     return await get_user_logic(user_id)

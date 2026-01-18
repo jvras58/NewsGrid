@@ -1,6 +1,3 @@
-from app2.infrastructure.repositories.redis_task_status_repository import (
-    RedisTaskStatusRepository,
-)
 from dependency_injector import containers, providers
 
 from app2.core.database import get_db
@@ -16,10 +13,13 @@ from app2.domain.user.use_cases import (
     GetUserByIdUseCase,
     ListUsersUseCase,
 )
-from app2.infrastructure.repositories.redis_cache_repository import RedisCacheRepository
-from app2.infrastructure.repositories.sql_auth_repository import SQLAuthRepository
-from app2.infrastructure.repositories.sql_report_repository import SQLReportRepository
-from app2.infrastructure.repositories.sql_user_repository import SQLUserRepository
+from app2.infrastructure.repositories.redis.cache_repository import RedisCacheRepository
+from app2.infrastructure.repositories.redis.status_repository import (
+    RedisTaskStatusRepository,
+)
+from app2.infrastructure.repositories.sql.auth_repository import SQLAuthRepository
+from app2.infrastructure.repositories.sql.report_repository import SQLReportRepository
+from app2.infrastructure.repositories.sql.user_repository import SQLUserRepository
 
 
 class Container(containers.DeclarativeContainer):

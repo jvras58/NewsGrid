@@ -6,6 +6,7 @@ import asyncio
 import json
 
 from app.core.container import Container
+from app.core.database import async_session
 from app.infrastructure.agents.agent_analyst import AnalystAgent
 from app.infrastructure.workers.base_worker import BaseWorker
 
@@ -47,9 +48,10 @@ class AnalystWorker(BaseWorker):
                 final_report = response.content
 
                 use_case = self.container.process_analysis_use_case()
-                await use_case.execute(
-                    task_id, topic, raw_research, user_id, final_report
-                )
+                async with async_session() as session:
+                    await use_case.execute(
+                        session, task_id, topic, raw_research, user_id, final_report
+                    )
 
                 ch.basic_ack(delivery_tag=method.delivery_tag)
                 self.logger.info(f"Análise concluída para {task_id}")

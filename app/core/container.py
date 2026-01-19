@@ -15,10 +15,10 @@ from app.domain.user.use_cases import (
     GetUserByIdUseCase,
     ListUsersUseCase,
 )
-from app.infrastructure.repositories.rate_limit_repository import (
+from app.infrastructure.repositories.redis.cache_repository import RedisCacheRepository
+from app.infrastructure.repositories.redis.rate_limit_repository import (
     RedisRateLimitRepository,
 )
-from app.infrastructure.repositories.redis.cache_repository import RedisCacheRepository
 from app.infrastructure.repositories.redis.status_repository import (
     RedisTaskStatusRepository,
 )

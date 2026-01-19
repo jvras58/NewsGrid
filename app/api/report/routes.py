@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.auth.controller import get_current_user
+from app.api.dependencies import get_current_user
 from app.api.report.controller import (
     get_report_logic,
     list_my_reports_logic,

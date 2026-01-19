@@ -1,6 +1,8 @@
+from app.infrastructure.services.rate_limit_service import RedisRateLimitRepository
 from dependency_injector import containers, providers
 
 from app.domain.auth.use_cases import GetCurrentUserUseCase, LoginUseCase
+from app.domain.rate_limit.use_cases import CheckRateLimitUseCase
 from app.domain.report.use_cases import (
     GetReportUseCase,
     ListMyReportsUseCase,
@@ -32,6 +34,7 @@ class Container(containers.DeclarativeContainer):
 
     task_status_repo = providers.Singleton(RedisTaskStatusRepository)
     cache_repo = providers.Singleton(RedisCacheRepository)
+    rate_limit_repo = providers.Singleton(RedisRateLimitRepository)
 
     # Use Cases de Auth (usam auth_repo e, se necessário, user_repo)
     login_use_case = providers.Factory(LoginUseCase, auth_repo=auth_repo)
@@ -58,10 +61,16 @@ class Container(containers.DeclarativeContainer):
         ListMyReportsUseCase, report_repo=report_repo
     )
 
+    # Use Cases de Rate Limit
+    check_rate_limit_use_case = providers.Factory(
+        CheckRateLimitUseCase, rate_limit_repo=rate_limit_repo
+    )
+
     # Use Cases de Processamento
     process_research_use_case = providers.Factory(
         ProcessResearchUseCase, task_status_repo=task_status_repo
     )
+
     process_analysis_use_case = providers.Factory(
         ProcessAnalysisUseCase,
         report_repo=report_repo,

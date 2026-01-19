@@ -37,10 +37,10 @@ seed:
 
 # iniciar os workers separadamente
 worker1:
-	set PYTHONPATH=. && uv run python -m app.workers.worker_researcher
+	set PYTHONPATH=. && uv run python -m app.infrastructure.workers.worker_researcher
 
 worker2:
-	set PYTHONPATH=. && uv run python -m app.workers.worker_analyst
+	set PYTHONPATH=. && uv run python -m app.infrastructure.workers.worker_analyst
 
 # iniciar todos os workers
 workers:

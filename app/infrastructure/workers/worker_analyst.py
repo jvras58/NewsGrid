@@ -5,9 +5,9 @@ Worker responsável por analisar dados de pesquisa bruta e gerar relatórios exe
 import asyncio
 import json
 
-from app2.core.container import Container
-from app2.infrastructure.agents.agent_analyst import AnalystAgent
-from app2.infrastructure.workers.base_worker import BaseWorker
+from app.core.container import Container
+from app.infrastructure.agents.agent_analyst import AnalystAgent
+from app.infrastructure.workers.base_worker import BaseWorker
 
 
 class AnalystWorker(BaseWorker):

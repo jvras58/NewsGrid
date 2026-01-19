@@ -3,6 +3,7 @@ from app.domain.rate_limit.repositories import IRateLimitRepository
 from utils.exceptions import BadRequestError
 
 
+# TODO: use o use case em controllers (ex.: antes de request_analysis_logic) para verificar limites.
 class CheckRateLimitUseCase:
     def __init__(self, rate_limit_repo: IRateLimitRepository):
         self.rate_limit_repo = rate_limit_repo

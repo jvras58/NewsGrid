@@ -1,460 +1,325 @@
-## 📊 Resumo Executivo
+## Visão Geral
 
-| Aspecto | Avaliação | Nível |
-|---------|-----------|-------|
-| **Arquitetura** | Bem estruturada, segue padrões modernos | ⭐⭐⭐⭐ |
-| **Organização** | Clara e escalável | ⭐⭐⭐⭐ |
-| **Nomenclatura** | Consistente e descritiva | ⭐⭐⭐⭐ |
-| **Qualidade de Código** | Boa, com espaço para melhorias | ⭐⭐⭐ |
-| **Uso de POO** | Intermediário, pode evoluir | ⭐⭐⭐ |
-
-**Classificação Geral: Intermediário-Avançado**
-
-**Adequado para POC? ✅ SIM** - O projeto já possui estrutura sólida para uma Proof of Concept.
+O projeto NewsGrid demonstra uma **boa aderência à Clean Architecture** com separação clara entre camadas (domain, infrastructure, api) e uso de interfaces abstratas (ABCs) para repositórios. No entanto, existem **violações pontuais da regra de dependência** e **inconsistências** que comprometem a pureza arquitetural, especialmente na camada de domínio e nos controllers. A estrutura está bem organizada para uma POC, mas precisa de refinamentos para produção.
 
 ---
 
-## 1. 🏗️ Análise da Arquitetura
+## 1. Problemas Encontrados
 
-### Pontos Fortes
+### 1.1 Camadas e Responsabilidades
 
-1. **Separação de Responsabilidades**: Arquitetura em camadas bem definida:
-   - api → Camada de apresentação (rotas, schemas)
-   - services → Camada de serviços
-   - workers → Processamento assíncrono
-   - agents → Lógica de IA
-   - utils → Utilitários compartilhados
+| Problema | Localização | Severidade |
+|----------|-------------|------------|
+| **Controllers com lógica de negócio** | app/api/report/controller.py | 🔴 Alta |
+| **Services legados ainda existem** | app/services/ (fora da estrutura DDD) | 🟡 Média |
 
-2. **Padrão de Mensageria**: Uso correto do RabbitMQ com pipeline:
-   ```
-   API → queue_research → ResearchWorker → queue_analysis → AnalystWorker → Redis/Postgres
-   ```
+**Exemplo do problema em controller.py:**
 
-3. **Autenticação JWT**: Implementação seguindo OAuth2 com FastAPI (controller.py)
+```python
+def request_analysis_logic(topic: str, user_id: int):
+    # ❌ Lógica de negócio direta no controller
+    cache_key = make_cache_key(topic)
+    cached_report = get_cached_report(cache_key)
+    if cached_report:
+        return {"status": "cached", "report": cached_report}
 
-4. **Cache e Persistência**: Estratégia híbrida Redis (cache/status) + PostgreSQL (persistência)
+    task_id = str(uuid.uuid4())
+    task_status_service.set_researching(task_id)  # ❌ Chamada direta a service
 
-### Pontos a Melhorar
-
-1. **Acoplamento nos Workers**: Os workers têm lógica de negócio misturada com infraestrutura
-2. **Falta de Injeção de Dependências** estruturada
-3. **Ausência de Repository Pattern** formal
-
----
-
-## 2. 📁 Organização de Pastas
-
-### Estrutura Atual (Avaliação: ⭐⭐⭐⭐)
-
-```
-app/
-├── agents/          ✅ Agentes de IA isolados
-├── api/             ✅ Estrutura por domínio (analyze, auth, user, status)
-│   └── {domain}/
-│       ├── controller.py  ✅ Lógica de negócio
-│       ├── routes.py      ✅ Definição de rotas
-│       └── schemas.py     ✅ Validação com Pydantic
-├── core/            ✅ Configurações centrais (database)
-├── models/          ✅ Modelos SQLAlchemy
-├── services/        ✅ Serviços de domínio
-└── workers/         ✅ Workers assíncronos
+    payload = {"task_id": task_id, "topic": topic, "user_id": str(user_id)}
+    send_to_queue("queue_research", payload)  # ❌ Infraestrutura no controller
 ```
 
-### Sugestão de Evolução
+**vs. o correto em controller.py:**
 
-```
-app/
-├── domain/                    # Novo: Agrupa lógica de domínio
-│   ├── analysis/
-│   │   ├── entities.py        # Entidades de domínio
-│   │   ├── repositories.py    # Interfaces de repositório
-│   │   └── use_cases.py       # Casos de uso
-│   └── auth/
-├── infrastructure/            # Novo: Implementações concretas
-│   ├── repositories/
-│   ├── messaging/
-│   └── cache/
-├── api/                       # Mantém
-├── agents/                    # Mantém
-└── workers/                   # Mantém
+```python
+def request_analysis_logic(request: AnalyzeRequest, user_id: int) -> AnalyzeResponse:
+    use_case = container.request_analysis_use_case()  # ✅ Usa Use Case
+    result = use_case.execute(request.topic, user_id)
+    return AnalyzeResponse(**result)
 ```
 
 ---
 
-## 3. 📝 Nomenclatura de Arquivos
+### 1.2 Regra de Dependência
 
-### Avaliação: ⭐⭐⭐⭐
+| Violação | Arquivo | Descrição |
+|----------|---------|-----------|
+| **Use Case depende de função de infraestrutura** | use_cases.py | `send_to_queue` importado diretamente |
+| **Entidade com import de exception utilitária** | - | Deveria ter exceções próprias do domínio |
 
-| Padrão | Exemplo | Status |
-|--------|---------|--------|
-| `snake_case` para arquivos | worker_analyst.py | ✅ |
-| `PascalCase` para classes | `AnalystWorker` | ✅ |
-| Prefixos descritivos | `agent_`, `worker_`, `test_` | ✅ |
-| Schemas separados | schemas.py por módulo | ✅ |
-
-### Inconsistências Menores
-
-- base_worker.py vs worker_analyst.py → Base deveria estar em `app/workers/base.py`
-- base_agent.py → Deveria estar em `app/agents/base.py`
-
----
-
-## 4. 🔍 Qualidade do Código
-
-### Pontos Fortes
-
-1. **Type Hints Consistentes**:
-```python
-async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    session: Annotated[AsyncSession, Depends(get_db)],
-) -> User:
-```
-
-2. **Docstrings Completas**:
-```python
-def create_agent(
-    model_id, tools=None, description="", instructions=None, markdown=False
-):
-    """
-    Função centralizada para criar agentes LLM com configurações padronizadas.
-    
-    Args:
-        model_id (str): ID do modelo LLM a ser utilizado.
-        ...
-    Returns:
-        Agent: Instância configurada do agente LLM.
-    """
-```
-
-3. **Configuração Centralizada**: settings.py com Pydantic Settings
-
-4. **Logging Estruturado**: logging.py com rotação de arquivos
-
-### Pontos a Melhorar
-
-1. **Tratamento de Exceções**: Uso de `Exception` genérico em vários lugares:
+**Exemplo crítico:**
 
 ```python
-# Em app/workers/worker_analyst.py - Atual
-except Exception as e:
-    task_status_service.set_failed(task_id)
-    self.logger.error(f"Erro na análise...")
-```
+from utils.send_to_queue import send_to_queue  # ❌ VIOLAÇÃO: domínio importa infraestrutura
 
-2. **Código Síncrono em Workers Async**:
-```python
-# Atual - Workaround com ThreadPoolExecutor
-with ThreadPoolExecutor() as executor:
-    future = executor.submit(asyncio.run, save_report())
-    future.result()
-```
-
----
-
-## 5. 🎯 Uso de POO - Análise Detalhada
-
-### O que está bom
-
-1. **Herança com Classes Base**:
-
-```python
-# utils/base_worker.py
-class BaseWorker(ABC):
-    @abstractmethod
-    def process_message(self, ch, method, properties, body):
-        pass
-
-# app/workers/worker_analyst.py
-class AnalystWorker(BaseWorker):
-    def process_message(self, ch, method, properties, body):
-        # Implementação específica
-```
-
-2. **Composição em Agentes**:
-
-```python
-# utils/base_agent.py
-class BaseAgent(ABC):
-    def __init__(self, ...):
-        self.agent = create_agent(...)  # Composição
-```
-
-### O que pode melhorar
-
-1. **Falta de Interfaces/Protocolos**: Não há contratos formais para serviços
-2. **Services como Classes Estáticas**: Perdem flexibilidade de injeção
-3. **Ausência de Value Objects**: Dados primitivos soltos
-
----
-
-## 6. 📋 Workflow de Melhorias
-
-### ✅ O que está BOM (Manter)
-
-| Aspecto | Implementação | Arquivo |
-|---------|---------------|---------|
-| Estrutura de rotas | Router por domínio | routes.py |
-| Validação | Pydantic Schemas | schemas.py |
-| Configuração | Pydantic Settings | settings.py |
-| Migrações | Alembic configurado | env.py |
-| Testes | Estrutura com mocks | tests |
-| Documentação | Markdown detalhado | docs |
-| CI/CD | GitHub Actions | workflows |
-
-### 🔧 O que MELHORAR (Refatorações Propostas)
-
-#### 1. Implementar Repository Pattern
-
-```python
-from abc import ABC, abstractmethod
-from typing import Protocol
-
-class ReportRepository(Protocol):
-    """Interface para repositório de relatórios."""
-    
-    async def get_by_task_id(self, task_id: str) -> Report | None:
-        ...
-    
-    async def save(self, report: Report) -> Report:
-        ...
-    
-    async def list_by_user(self, user_id: int) -> list[Report]:
-        ...
-```
-
-```python
-from app.domain.reports.repositories import ReportRepository
-
-class SQLReportRepository(ReportRepository):
-    """Implementação SQL do repositório de relatórios."""
-    
-    def __init__(self, session: AsyncSession):
-        self._session = session
-    
-    async def get_by_task_id(self, task_id: str) -> Report | None:
-        stmt = select(ReportModel).where(ReportModel.task_id == task_id)
-        result = await self._session.execute(stmt)
-        return result.scalar_one_or_none()
-    
-    async def save(self, report: Report) -> Report:
-        model = ReportModel(**report.to_dict())
-        self._session.add(model)
-        await self._session.commit()
-        return report
-```
-
-#### 2. Implementar Use Cases (Casos de Uso)
-
-```python
-from dataclasses import dataclass
-from app.domain.reports.repositories import ReportRepository
-
-@dataclass
 class RequestAnalysisUseCase:
-    """Caso de uso para solicitar análise."""
-    
-    report_repository: ReportRepository
-    message_broker: MessageBroker
-    cache_service: CacheService
-    
-    async def execute(self, topic: str, user_id: int) -> AnalysisResult:
-        # Verificar cache
-        cached = await self.cache_service.get(topic)
-        if cached:
-            return AnalysisResult.from_cache(cached)
-        
-        # Criar tarefa
-        task_id = str(uuid.uuid4())
-        
-        # Publicar na fila
-        await self.message_broker.publish(
-            queue="queue_research",
-            payload=AnalysisPayload(task_id, topic, user_id)
-        )
-        
-        return AnalysisResult.processing(task_id)
+    def execute(self, topic: str, user_id: int) -> dict[str, Any]:
+        # ...
+        try:
+            send_to_queue("queue_research", payload)  # ❌ Chamada direta
 ```
 
-#### 3. Criar Value Objects
+---
+
+### 1.3 Domínio e Casos de Uso
+
+| Problema | Impacto |
+|----------|---------|
+| **Entidades usam `dataclass` simples** | Falta validação rica no domínio |
+| **Exceções genéricas** (`BadRequestError`) | Mistura erros HTTP com domínio |
+| **Use Cases retornam `dict`** | Perda de tipagem forte |
+
+**Exemplo de entidade anêmica:**
 
 ```python
-from dataclasses import dataclass
-from typing import NewType
+@dataclass
+class ReportEntity:
+    id: int | None
+    task_id: str
+    owner_id: int
+    topic: str
+    content: str | None
+    created_at: datetime
 
-TaskId = NewType("TaskId", str)
-UserId = NewType("UserId", int)
-
-@dataclass(frozen=True)
-class Topic:
-    """Value Object para tópico de análise."""
-    
-    value: str
-    
-    def __post_init__(self):
-        if len(self.value) < 3:
-            raise ValueError("Tópico deve ter pelo menos 3 caracteres")
-        if len(self.value) > 200:
-            raise ValueError("Tópico deve ter no máximo 200 caracteres")
-    
-    def to_cache_key(self) -> str:
-        return f"report:{self.value.lower().replace(' ', '_')}"
+    def validate(self):  # ⚠️ Validação básica, sem comportamento de negócio
+        if not self.task_id:
+            raise ValueError("Task ID é obrigatório")
 ```
 
-#### 4. Refatorar Workers com Injeção de Dependências
+---
+
+### 1.4 Interface Adapters e Infraestrutura
+
+| Problema | Arquivo |
+|----------|---------|
+| **Schema com método `from_entity`** | Acoplamento correto ✅ |
+| **Controller instancia Container diretamente** | Deveria receber via DI |
+| **Duas pastas `api/analyze` e `api/report` fazem a mesma coisa** | Duplicação |
+
+---
+
+### 1.5 Injeção de Dependências
+
+```python
+container = Container()  # ❌ Instância global no módulo
+
+def request_analysis_logic(request: AnalyzeRequest, user_id: int):
+    use_case = container.request_analysis_use_case()  # ❌ Resolve dentro da função
+```
+
+**Problema:** O container é criado como variável de módulo, não injetado via FastAPI `Depends`.
+
+---
+
+### 1.6 Testabilidade
+
+| Aspecto | Status |
+|---------|--------|
+| **Use Cases testáveis isoladamente** | ✅ Sim (recebem interfaces) |
+| **Workers acoplados a pika** | ❌ Difícil mockar |
+| **`send_to_queue` hardcoded em Use Case** | ❌ Impede testes puros |
+
+---
+
+## 2. Plano de Ação (Ordem de Prioridade)
+
+### Fase 1: Correções Críticas (1 semana)
+
+#### 1.1 Extrair `send_to_queue` para interface no domínio
 
 ```python
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Any
 
-T = TypeVar("T")
-
-class BaseWorker(ABC, Generic[T]):
-    """Worker base com suporte a injeção de dependências."""
+class IMessageBroker(ABC):
+    """Interface para envio de mensagens."""
     
+    @abstractmethod
+    def publish(self, queue: str, payload: dict[str, Any]) -> None:
+        pass
+```
+
+```python
+from app.domain.messaging.repositories import IMessageBroker
+from utils.send_to_queue import send_to_queue
+
+class RabbitMQBroker(IMessageBroker):
+    def publish(self, queue: str, payload: dict[str, Any]) -> None:
+        send_to_queue(queue, payload)
+```
+
+```python
+# ANTES:
+from utils.send_to_queue import send_to_queue
+
+# DEPOIS:
+from app.domain.messaging.repositories import IMessageBroker
+
+class RequestAnalysisUseCase:
     def __init__(
         self,
-        queue_name: str,
-        connection_factory: ConnectionFactory,
-        logger: Logger,
+        cache_repo: ICacheRepository,
+        task_status_repo: ITaskStatusRepository,
+        message_broker: IMessageBroker,  # ✅ Injetado
     ):
-        self._queue_name = queue_name
-        self._connection_factory = connection_factory
-        self._logger = logger
-        self._channel = None
+        self.message_broker = message_broker
     
-    @abstractmethod
-    async def handle_message(self, message: T) -> None:
-        """Processa mensagem tipada."""
-        pass
-    
-    def _parse_message(self, body: bytes) -> T:
-        """Converte bytes para tipo esperado."""
-        raise NotImplementedError
-    
-    async def run(self) -> None:
-        async with self._connection_factory.create() as connection:
-            self._channel = await connection.channel()
-            await self._channel.set_qos(prefetch_count=1)
-            
-            queue = await self._channel.declare_queue(
-                self._queue_name, durable=True
-            )
-            
-            async for message in queue:
-                async with message.process():
-                    try:
-                        parsed = self._parse_message(message.body)
-                        await self.handle_message(parsed)
-                    except Exception as e:
-                        self._logger.error(f"Erro: {e}")
-                        raise
+    def execute(self, topic: str, user_id: int) -> dict[str, Any]:
+        # ...
+        self.message_broker.publish("queue_research", payload)  # ✅ Usa interface
 ```
 
-#### 5. Implementar Exceções de Domínio
+#### 1.2 Remover pasta duplicada `api/analyze`
+
+Consolidar em `api/report` que já usa Use Cases corretamente.
+
+---
+
+### Fase 2: Melhoria de Domínio (2 semanas)
+
+#### 2.1 Criar exceções de domínio
 
 ```python
 class DomainException(Exception):
-    """Exceção base do domínio."""
-    
-    def __init__(self, message: str, code: str):
-        self.message = message
-        self.code = code
-        super().__init__(message)
+    """Base para exceções de domínio."""
+    pass
 
-class ReportNotFoundException(DomainException):
+class ReportNotFoundError(DomainException):
     def __init__(self, task_id: str):
-        super().__init__(
-            message=f"Relatório não encontrado: {task_id}",
-            code="REPORT_NOT_FOUND"
-        )
+        super().__init__(f"Relatório não encontrado: {task_id}")
 
-class UnauthorizedAccessException(DomainException):
-    def __init__(self, resource: str, user_id: int):
-        super().__init__(
-            message=f"Usuário {user_id} não tem acesso a {resource}",
-            code="UNAUTHORIZED_ACCESS"
-        )
+class UnauthorizedAccessError(DomainException):
+    def __init__(self, resource: str):
+        super().__init__(f"Acesso negado a: {resource}")
+
+class RateLimitExceededError(DomainException):
+    def __init__(self, reset_in: int):
+        super().__init__(f"Limite excedido. Reset em {reset_in}s")
 ```
 
-#### 6. Adicionar Dependency Injection Container
+#### 2.2 Use Cases retornarem entidades ou DTOs tipados
 
 ```python
-from dependency_injector import containers, providers
-from app.infrastructure.repositories.report_repository_sql import SQLReportRepository
-from app.domain.analysis.use_cases import RequestAnalysisUseCase
+from dataclasses import dataclass
 
-class Container(containers.DeclarativeContainer):
-    """Container de injeção de dependências."""
-    
-    config = providers.Configuration()
-    
-    # Database
-    db_session = providers.Factory(
-        AsyncSession,
-        bind=config.database.engine,
-    )
-    
-    # Repositories
-    report_repository = providers.Factory(
-        SQLReportRepository,
-        session=db_session,
-    )
-    
-    # Use Cases
-    request_analysis = providers.Factory(
-        RequestAnalysisUseCase,
-        report_repository=report_repository,
-        message_broker=...,
-        cache_service=...,
-    )
+@dataclass
+class AnalysisResult:
+    status: str
+    task_id: str | None = None
+    report: ReportEntity | None = None
+
+class RequestAnalysisUseCase:
+    def execute(self, topic: str, user_id: int) -> AnalysisResult:  # ✅ Tipo forte
+        # ...
+        return AnalysisResult(status="processing", task_id=task_id)
 ```
 
 ---
 
-## 7. 📈 Roadmap de Evolução
+### Fase 3: Injeção de Dependências via FastAPI (1 semana)
 
-### Fase 1: Quick Wins (1-2 semanas)
+#### 3.1 Criar providers no dependencies.py
 
-- [ ] Mover base_worker.py → `app/workers/base.py`
-- [ ] Mover base_agent.py → `app/agents/base.py`
-- [ ] Criar exceções de domínio específicas
-- [ ] Adicionar `py.typed` para suporte a type checking
+```python
+from app.core.container import Container
 
-### Fase 2: Refatoração de Serviços (2-3 semanas)
+_container = Container()
 
-- [ ] Implementar Repository Pattern
-- [ ] Converter services estáticos para classes instanciáveis
-- [ ] Adicionar interfaces/Protocols
+def get_request_analysis_use_case():
+    return _container.request_analysis_use_case()
 
-### Fase 3: Arquitetura Limpa (3-4 semanas)
+def get_report_use_case():
+    return _container.get_report_use_case()
+```
 
-- [ ] Criar camada de Use Cases
-- [ ] Implementar Value Objects
-- [ ] Adicionar Container de DI
+#### 3.2 Usar `Depends` nas rotas
 
-### Fase 4: Robustez (Contínuo)
+```python
+from app.api.dependencies import get_request_analysis_use_case
+from app.domain.report.use_cases import RequestAnalysisUseCase
 
-- [ ] Melhorar cobertura de testes (meta: 80%)
-- [ ] Adicionar testes de integração
-- [ ] Implementar circuit breaker para serviços externos
-
----
-
-## 8. 📚 Referências e Boas Práticas
-
-Baseado na documentação oficial:
-
-1. **FastAPI**: Uso correto de `Depends`, `Annotated`, e `OAuth2PasswordBearer`
-2. **Pydantic**: Settings e Schemas bem estruturados
-3. **SQLAlchemy 2.0**: Uso de `AsyncSession` e modelos declarativos
-4. **RabbitMQ/Pika**: Padrão de acknowledgment correto
+@router.post("/", response_model=AnalyzeResponse)
+async def request_analysis(
+    request: AnalyzeRequest,
+    current_user: get_current_user_dep,
+    use_case: RequestAnalysisUseCase = Depends(get_request_analysis_use_case),  # ✅
+):
+    result = use_case.execute(request.topic, current_user.id)
+    return AnalyzeResponse.from_result(result)
+```
 
 ---
 
-## Conclusão
+### Fase 4: Limpeza de Legados (1 semana)
 
-As principais áreas de melhoria são:
-1. **Desacoplamento** através de Repository Pattern e Use Cases
-2. **Injeção de Dependências** formal
-3. **Exceções de Domínio** específicas
+1. **Remover** app/services/ - migrar funcionalidades restantes para Use Cases
+2. **Mover** send_to_queue.py para `app/infrastructure/messaging/`
+3. **Consolidar** exceções em `app/domain/exceptions.py`
+
+---
+
+## 3. Resumo Visual da Arquitetura Atual vs. Ideal
+
+### Atual (com problemas)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  API Layer (FastAPI)                                    │
+│  ┌─────────────┐    ┌─────────────┐                     │
+│  │ routes.py   │───▶│ controller  │──┐                  │
+│  └─────────────┘    └─────────────┘  │                  │
+└──────────────────────────────────────│──────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────┐
+│  Domain Layer                                           │
+│  ┌─────────────┐                                        │
+│  │ use_cases   │───▶ send_to_queue() ❌ VIOLA REGRA    │
+│  └─────────────┘                                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Ideal (corrigido)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  API Layer (FastAPI)                                    │
+│  ┌─────────────┐    ┌─────────────┐                     │
+│  │ routes.py   │───▶│ Depends(UC) │                     │
+│  └─────────────┘    └─────────────┘                     │
+└──────────────────────────────────────│──────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────┐
+│  Domain Layer                                           │
+│  ┌─────────────┐    ┌─────────────────┐                 │
+│  │ use_cases   │───▶│ IMessageBroker  │ (interface)     │
+│  └─────────────┘    └─────────────────┘                 │
+└─────────────────────────────────────────────────────────┘
+                                       ▲
+                                       │
+┌─────────────────────────────────────────────────────────┐
+│  Infrastructure Layer                                   │
+│  ┌─────────────────────┐                                │
+│  │ RabbitMQBroker      │ (implementa IMessageBroker)    │
+│  └─────────────────────┘                                │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4. Checklist de Conformidade
+
+| Critério | Status | Ação |
+|----------|--------|------|
+| Entidades sem dependências externas | ⚠️ | Remover `BadRequestError` |
+| Use Cases usam apenas interfaces | ❌ | Criar `IMessageBroker` |
+| Controllers delegam para Use Cases | ⚠️ | Remover controller.py legado |
+| Injeção via `Depends` | ❌ | Implementar providers |
+| Exceções de domínio próprias | ❌ | Criar módulo `domain/exceptions.py` |
+| Testabilidade dos Use Cases | ⚠️ | Após criar interfaces |
+
+---
+
+**Conclusão:** A arquitetura está 70% aderente à Clean Architecture. As principais melhorias são: (1) abstrair `send_to_queue` via interface, (2) remover duplicação `analyze`/`report`, e (3) usar `Depends` para injeção nos controllers.

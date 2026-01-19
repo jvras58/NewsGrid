@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth.controller import get_current_user
 from app.api.report.controller import (
@@ -14,11 +15,13 @@ from app.api.report.schemas import (
     MyReportsResponse,
     ReportResponse,
 )
+from app.core.database import get_db
 from app.domain.user.entities import UserEntity
 
 router = APIRouter()
 
 get_current_user_dep = Annotated[UserEntity, Depends(get_current_user)]
+Session = Annotated[AsyncSession, Depends(get_db)]
 
 
 @router.post("/", response_model=AnalyzeResponse)
@@ -27,10 +30,12 @@ async def request_analysis(request: AnalyzeRequest, current_user: get_current_us
 
 
 @router.get("/report/{task_id}", response_model=ReportResponse)
-async def get_analysis_report(task_id: str, current_user: get_current_user_dep):
-    return await get_report_logic(task_id, current_user.id)
+async def get_analysis_report(
+    task_id: str, current_user: get_current_user_dep, session: Session
+):
+    return await get_report_logic(task_id, current_user.id, session)
 
 
 @router.get("/my-reports", response_model=MyReportsResponse)
-async def list_my_reports(current_user: get_current_user_dep):
-    return await list_my_reports_logic(current_user.id)
+async def list_my_reports(current_user: get_current_user_dep, session: Session):
+    return await list_my_reports_logic(current_user.id, session)

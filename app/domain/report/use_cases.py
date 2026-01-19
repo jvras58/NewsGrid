@@ -37,8 +37,8 @@ class GetReportUseCase:
     def __init__(self, report_repo: IReportRepository):
         self.report_repo = report_repo
 
-    async def execute(self, task_id: str, user_id: int) -> ReportEntity:
-        report = await self.report_repo.get_report_by_task_id(task_id)
+    async def execute(self, session, task_id: str, user_id: int) -> ReportEntity:
+        report = await self.report_repo.get_report_by_task_id(session, task_id)
         if not report:
             raise BadRequestError("Relatório não encontrado")
         if report.owner_id != user_id:
@@ -51,10 +51,19 @@ class ListMyReportsUseCase:
         self.report_repo = report_repo
 
     async def execute(
-        self, user_id: int, topic_filter: str | None, page: int, per_page: int
+        self,
+        session,
+        user_id: int,
+        topic_filter: str | None,
+        page: int,
+        per_page: int,
     ) -> tuple[list[str], int]:
         reports, total = await self.report_repo.list_reports_by_owner(
-            user_id, topic_filter, page, per_page
+            session,
+            user_id,
+            topic_filter,
+            page,
+            per_page,
         )
         task_ids = [report.task_id for report in reports]
         return task_ids, total
@@ -91,6 +100,7 @@ class ProcessAnalysisUseCase:
 
     async def execute(
         self,
+        session,
         task_id: str,
         topic: str,
         raw_research: str,
@@ -100,7 +110,9 @@ class ProcessAnalysisUseCase:
         self.task_status_repo.set_status(task_id, "ANALYZING")
 
         # Cria relatório com o final_report gerado
-        await self.report_repo.create_report(task_id, user_id, topic, final_report)
+        await self.report_repo.create_report(
+            session, task_id, user_id, topic, final_report
+        )
 
         # Cache
         cache_key = self.cache_repo.make_cache_key(topic)

@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.report.entities import ReportEntity
 
 
@@ -9,17 +11,29 @@ class IReportRepository(ABC):
 
     @abstractmethod
     async def create_report(
-        self, task_id: str, owner_id: int, topic: str, content: str | None
+        self,
+        session: AsyncSession,
+        task_id: str,
+        owner_id: int,
+        topic: str,
+        content: str | None,
     ) -> ReportEntity:
         pass
 
     @abstractmethod
-    async def get_report_by_task_id(self, task_id: str) -> ReportEntity | None:
+    async def get_report_by_task_id(
+        self, session: AsyncSession, task_id: str
+    ) -> ReportEntity | None:
         pass
 
     @abstractmethod
     async def list_reports_by_owner(
-        self, owner_id: int, topic_filter: str | None, page: int, per_page: int
+        self,
+        session: AsyncSession,
+        owner_id: int,
+        topic_filter: str | None,
+        page: int,
+        per_page: int,
     ) -> tuple[list[ReportEntity], int]:
         pass
 

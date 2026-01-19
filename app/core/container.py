@@ -1,4 +1,3 @@
-from app.infrastructure.services.rate_limit_service import RedisRateLimitRepository
 from dependency_injector import containers, providers
 
 from app.domain.auth.use_cases import GetCurrentUserUseCase, LoginUseCase
@@ -15,6 +14,9 @@ from app.domain.user.use_cases import (
     CreateUserUseCase,
     GetUserByIdUseCase,
     ListUsersUseCase,
+)
+from app.infrastructure.repositories.rate_limit_repository import (
+    RedisRateLimitRepository,
 )
 from app.infrastructure.repositories.redis.cache_repository import RedisCacheRepository
 from app.infrastructure.repositories.redis.status_repository import (

@@ -5,9 +5,9 @@ Worker responsável por realizar pesquisas detalhadas sobre tópicos fornecidos.
 import json
 
 from app.core.container import Container
+from app.domain.messaging.entities import Message
 from app.infrastructure.agents.agent_research import ResearchAgent
 from app.infrastructure.workers.base_worker import BaseWorker
-from utils.send_to_queue import send_to_queue
 
 
 class ResearchWorker(BaseWorker):
@@ -43,7 +43,11 @@ class ResearchWorker(BaseWorker):
                 task_id, topic, int(user_id) if user_id else 0, raw_research
             )
 
-            send_to_queue("queue_analysis", result)
+            send_message_use_case = self.container.send_message_use_case()
+            message = Message(
+                queue_name="queue_analysis", data=result, message_id=task_id
+            )
+            send_message_use_case.execute(message)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
             self.logger.info(f"Pesquisa concluída para {task_id}")

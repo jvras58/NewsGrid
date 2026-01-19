@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 
 from app.domain.auth.use_cases import GetCurrentUserUseCase, LoginUseCase
+from app.domain.messaging.use_cases import SendMessageUseCase
 from app.domain.rate_limit.use_cases import CheckRateLimitUseCase
 from app.domain.report.use_cases import (
     GetReportUseCase,
@@ -15,6 +16,7 @@ from app.domain.user.use_cases import (
     GetUserByIdUseCase,
     ListUsersUseCase,
 )
+from app.infrastructure.repositories.messaging.send_to_queue import RabbitMQBroker
 from app.infrastructure.repositories.redis.cache_repository import RedisCacheRepository
 from app.infrastructure.repositories.redis.rate_limit_repository import (
     RedisRateLimitRepository,
@@ -34,6 +36,7 @@ class Container(containers.DeclarativeContainer):
     user_repo = providers.Factory(SQLUserRepository)
     report_repo = providers.Factory(SQLReportRepository)
 
+    message_broker = providers.Singleton(RabbitMQBroker)
     task_status_repo = providers.Singleton(RedisTaskStatusRepository)
     cache_repo = providers.Singleton(RedisCacheRepository)
     rate_limit_repo = providers.Singleton(RedisRateLimitRepository)
@@ -54,9 +57,16 @@ class Container(containers.DeclarativeContainer):
         GetTaskStatusUseCase, task_status_repo=task_status_repo, report_repo=report_repo
     )
 
+    send_message_use_case = providers.Factory(
+        SendMessageUseCase, message_broker=message_broker
+    )
+
     # Use Cases de Report
     request_analysis_use_case = providers.Factory(
-        RequestAnalysisUseCase, cache_repo=cache_repo, task_status_repo=task_status_repo
+        RequestAnalysisUseCase,
+        cache_repo=cache_repo,
+        task_status_repo=task_status_repo,
+        send_message_use_case=send_message_use_case,
     )
     get_report_use_case = providers.Factory(GetReportUseCase, report_repo=report_repo)
     list_my_reports_use_case = providers.Factory(

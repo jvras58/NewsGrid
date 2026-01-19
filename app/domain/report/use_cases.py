@@ -1,19 +1,24 @@
 import uuid
 from typing import Any
 
+from app.domain.messaging.entities import Message
+from app.domain.messaging.use_cases import SendMessageUseCase
 from app.domain.report.entities import ReportEntity
 from app.domain.report.repositories import ICacheRepository, IReportRepository
 from app.domain.status.repositories import ITaskStatusRepository
 from utils.exceptions import BadRequestError
-from utils.send_to_queue import send_to_queue
 
 
 class RequestAnalysisUseCase:
     def __init__(
-        self, cache_repo: ICacheRepository, task_status_repo: ITaskStatusRepository
+        self,
+        cache_repo: ICacheRepository,
+        task_status_repo: ITaskStatusRepository,
+        send_message_use_case: SendMessageUseCase,
     ):
         self.cache_repo = cache_repo
         self.task_status_repo = task_status_repo
+        self.send_message_use_case = send_message_use_case
 
     def execute(self, topic: str, user_id: int) -> dict[str, Any]:
         cache_key = self.cache_repo.make_cache_key(topic)
@@ -25,8 +30,9 @@ class RequestAnalysisUseCase:
         self.task_status_repo.set_status(task_id, "RESEARCHING")
 
         payload = {"task_id": task_id, "topic": topic, "user_id": str(user_id)}
+        message = Message(queue_name="queue_research", data=payload, message_id=task_id)
         try:
-            send_to_queue("queue_research", payload)
+            self.send_message_use_case.execute(message)
             return {"status": "Processamento iniciado", "task_id": task_id}
         except Exception as e:
             self.task_status_repo.set_status(task_id, "FAILED")

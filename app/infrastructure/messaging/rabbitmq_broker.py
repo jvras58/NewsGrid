@@ -5,12 +5,10 @@ Implementação do broker de mensagens usando RabbitMQ.
 import json
 
 import pika
-from app.domain.interfaces.IMessageBroker import IMessageBroker
 
 from app.domain.exceptions import MessageSendError
-from utils.broker import (
-    get_rabbitmq_connection,
-)
+from app.domain.messaging.repositories import IMessageBroker
+from app.infrastructure.messaging.broker import get_rabbitmq_connection
 from utils.logging import get_logger
 
 logger = get_logger("RabbitMQBroker")

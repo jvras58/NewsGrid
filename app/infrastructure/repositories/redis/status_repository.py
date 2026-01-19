@@ -1,5 +1,5 @@
 from app.domain.status.repositories import ITaskStatusRepository
-from utils.tasks_controller import (
+from app.infrastructure.cache.task_status_service import (
     delete_task_status,
     get_task_status,
     set_task_status,

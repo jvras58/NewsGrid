@@ -3,7 +3,7 @@ import json
 from typing import Any
 
 from app.domain.report.repositories import ICacheRepository
-from utils.redis_client import get_redis_client
+from app.infrastructure.cache.redis_client import get_redis_client
 from utils.settings import settings
 
 

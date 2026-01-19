@@ -1,5 +1,5 @@
 """
-Utilitários para criação e configuração de agentes LLM.
+Cliente para criação e configuração de agentes LLM.
 """
 
 from agno.agent import Agent
@@ -24,7 +24,6 @@ def create_agent(
     Returns:
         Agent: Instância configurada do agente LLM.
     """
-
     model = Groq(id=model_id, api_key=settings.groq_api_key)
     return Agent(
         model=model,

@@ -1,4 +1,4 @@
-from utils.redis_client import get_redis_client
+from app.infrastructure.cache.redis_client import get_redis_client
 from utils.settings import settings
 
 

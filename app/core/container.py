@@ -16,7 +16,7 @@ from app.domain.user.use_cases import (
     GetUserByIdUseCase,
     ListUsersUseCase,
 )
-from app.infrastructure.repositories.messaging.send_to_queue import RabbitMQBroker
+from app.infrastructure.messaging.rabbitmq_broker import RabbitMQBroker
 from app.infrastructure.repositories.redis.cache_repository import RedisCacheRepository
 from app.infrastructure.repositories.redis.rate_limit_repository import (
     RedisRateLimitRepository,

@@ -1,7 +1,6 @@
-from app.domain.interfaces.IMessageBroker import IMessageBroker
-
 from app.domain.exceptions import MessageSendError
 from app.domain.messaging.entities import Message
+from app.domain.messaging.repositories import IMessageBroker
 
 
 class SendMessageUseCase:

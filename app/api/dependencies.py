@@ -11,9 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.container import Container
 from app.core.database import get_db
+from app.domain.rate_limit.use_cases import CheckRateLimitUseCase
 from app.domain.user.entities import UserEntity
 from app.models import User
-from app.services.rate_limit_service import check_rate_limit, get_user_limit
+from utils.exceptions import BadRequestError
 from utils.security import extract_username
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
@@ -48,19 +49,20 @@ async def get_current_username(user: Annotated[User, Depends(get_current_user)])
 
 def get_rate_limit_dependency():
     """
-    Dependency para rate limiting.
+    Dependency para rate limiting usando o use case.
     """
 
     async def check_rate_limit_dep(
         request: Request, username: Annotated[str, Depends(get_current_username)]
     ):
-        limit = get_user_limit(username)
-        allowed, count, reset_in = check_rate_limit(username, limit)
-        if not allowed:
+        use_case: CheckRateLimitUseCase = container.check_rate_limit_use_case()
+        try:
+            _entity = use_case.execute(username)
+            return True
+        except BadRequestError as e:
             raise HTTPException(
                 status_code=429,
-                detail=f"Rate limit exceeded. Limit: {limit}/min. Current: {count}. Reset in {reset_in}s",
-            )
-        return True
+                detail=str(e),
+            ) from e
 
     return check_rate_limit_dep

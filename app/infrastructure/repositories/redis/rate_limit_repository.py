@@ -5,7 +5,7 @@ Serviço para rate limiting usando Redis com sliding window.
 import time
 
 from app.domain.rate_limit.repositories import IRateLimitRepository
-from utils.redis_client import get_redis_client
+from app.infrastructure.cache.redis_client import get_redis_client
 
 WINDOW_SECONDS = 60
 

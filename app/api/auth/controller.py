@@ -3,8 +3,10 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.container import Container
+from app.core.database import get_db
 from app.domain.user.entities import (
     UserEntity,
 )
@@ -25,7 +27,7 @@ async def login(username: str, password: str, session):
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
-    session,
+    session: Annotated[AsyncSession, Depends(get_db)],
 ) -> UserEntity:
     credentials_exception = HTTPException(
         status_code=401,

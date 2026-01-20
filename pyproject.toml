@@ -21,8 +21,10 @@ dependencies = [
     "uvicorn[standard]>=0.40.0",
 ]
 # uv run pytest --cov=app --cov-report=html
+# uv add --group dev factory-boy
 [dependency-groups]
 dev = [
+    "factory-boy>=3.3.0",
     "httpx>=0.25.2",
     "pytest>=8.4.2",
     "pytest-asyncio>=0.23.8",

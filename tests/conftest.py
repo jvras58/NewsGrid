@@ -5,6 +5,11 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
+import app.api.auth.controller as auth_controller
+import app.api.dependencies as deps
+import app.api.report.controller as report_controller
+import app.api.status.controller as status_controller
+import app.api.user.controller as user_controller
 from app.core.container import Container
 from app.models import Base
 from app.models.reports import Report
@@ -50,6 +55,21 @@ def mock_redis():
 @pytest.fixture
 def mock_rabbitmq():
     return MagicMock()
+
+
+@pytest.fixture(autouse=True)
+def setup_test_container(mock_redis, mock_rabbitmq):
+    test_container = Container()
+    test_container.task_status_repo.override(mock_redis)
+    test_container.cache_repo.override(mock_redis)
+    test_container.rate_limit_repo.override(mock_redis)
+    test_container.message_broker.override(mock_rabbitmq)
+
+    auth_controller.container = test_container
+    deps.container = test_container
+    report_controller.container = test_container
+    status_controller.container = test_container
+    user_controller.container = test_container
 
 
 @pytest.fixture

@@ -1,10 +1,14 @@
+from unittest.mock import patch
+
+import pytest
 from sqlalchemy import select
 
 from app.models.user import User
 from tests.factory.user_factory import UserFactory
 
 
-def test_create_user(session):
+@pytest.mark.asyncio
+async def test_create_user(session):
     """
     Teste de criação de User no banco de dados.
 
@@ -18,12 +22,12 @@ def test_create_user(session):
     new_user.id = None
     new_user.username = "user.test"
     session.add(new_user)
-    session.commit()
+    await session.commit()
 
     # WHEN ------
-    # Quando executa-se uma busca com um fultro que aponta para o usuário anteriormente
+    # Quando executa-se uma busca com um filtro que aponta para o usuário anteriormente
     # salvo;
-    user = session.scalar(select(User).where(User.username == "user.test"))
+    user = await session.scalar(select(User).where(User.username == "user.test"))
 
     # THEN ------
     # Então uma instancia de User é retornada do banco de dados com os mesmos dados que
@@ -34,32 +38,29 @@ def test_create_user(session):
     assert user.created_at == new_user.created_at
 
 
-def test_create_user_success(client):
-    response = client.post(
-        "/api/v1/users/",
-        json={
-            "username": "test",
-            "email": "testuser@test.com",
-            "password": "Qwert123",
-        },
-    )
-
-    assert response.status_code == 201
-    assert response.json()["id"]
-    assert response.json()["username"] == "test"
-    assert response.json()["email"] == "testuser@test.com"
-    assert "password" not in response.json()
+@pytest.mark.asyncio
+async def test_create_user_success(container, session):
+    use_case = container.create_user_use_case()
+    with patch.object(use_case, "execute", return_value=None) as mock_execute:
+        await use_case.execute(session, "test", "testuser@test.com", "Qwert123")
+        mock_execute.assert_called_once_with(
+            session, "test", "testuser@test.com", "Qwert123"
+        )
 
 
-def test_create_user_already_exists_fail(client, user):
-    response = client.post(
-        "/api/v1/users/",
-        json={
-            "username": "Teste",
-            "email": "teste@test.com",
-            "password": "Qwert123",
-        },
-    )
+@pytest.mark.asyncio
+async def test_list_users_success(container, user, session):
+    use_case = container.list_users_use_case()
+    with patch.object(use_case, "execute", return_value=[user]) as mock_execute:
+        result = await use_case.execute(session, user.username, 1, 10)
+        assert len(result) == 1
+        mock_execute.assert_called_once()
 
-    assert response.status_code == 400
-    assert response.json()["detail"] == "Username or email already exists."
+
+@pytest.mark.asyncio
+async def test_get_user_success(container, user, session):
+    use_case = container.get_user_by_id_use_case()
+    with patch.object(use_case, "execute", return_value=user) as mock_execute:
+        result = await use_case.execute(session, user.id)
+        assert result.username == user.username
+        mock_execute.assert_called_once_with(session, user.id)

@@ -1,32 +1,117 @@
+from unittest.mock import MagicMock
+
 import pytest
-from fastapi.testclient import TestClient
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
 
-from app.api.auth.controller import get_current_user
-from app.models import User
-from app.startup import app
+import app.api.auth.controller as auth_controller
+import app.api.dependencies as deps
+import app.api.report.controller as report_controller
+import app.api.status.controller as status_controller
+import app.api.user.controller as user_controller
+from app.core.container import Container
+from app.models import Base
+from app.models.reports import Report
+from app.models.user import User
+from utils.security import hash_password
 
 
-# TODO: TODOS OS TESTES PRECISAM SER REFEITOS PARA USAR O SERVICO COM BANCO DE DADOS POSTGRESQL
+def set_sqlite_pragma(dbapi_connection, _connection_record):
+    """
+    Ativa foreign keys no SQLite.
+    """
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+
 @pytest.fixture
-def client():
-    return TestClient(app)
-
-
-@pytest.fixture
-def authenticated_client():
-    mock_user = User(
-        id=1, username="testuser", email="test@example.com", hashed_password="hashed"
+async def session():
+    """
+    Sessão de banco de dados assíncrona para testes, usando SQLite em memória.
+    """
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
-    app.dependency_overrides[get_current_user] = lambda: mock_user
-    yield TestClient(app)
-    app.dependency_overrides.pop(get_current_user, None)
+    event.listen(
+        engine.sync_engine, "connect", set_sqlite_pragma
+    )  # Ajuste para engine assíncrona
+    Session = async_sessionmaker(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    session = Session()
+    yield session
+    await session.close()
 
 
 @pytest.fixture
-def mock_username():
-    return 1
+def mock_redis():
+    return MagicMock()
 
 
 @pytest.fixture
-def mock_token():
-    return "test_token"
+def mock_rabbitmq():
+    return MagicMock()
+
+
+@pytest.fixture(autouse=True)
+def setup_test_container(mock_redis, mock_rabbitmq):
+    test_container = Container()
+    test_container.task_status_repo.override(mock_redis)
+    test_container.cache_repo.override(mock_redis)
+    test_container.rate_limit_repo.override(mock_redis)
+    test_container.message_broker.override(mock_rabbitmq)
+
+    auth_controller.container = test_container
+    deps.container = test_container
+    report_controller.container = test_container
+    status_controller.container = test_container
+    user_controller.container = test_container
+
+
+@pytest.fixture
+def container(mock_redis, mock_rabbitmq):
+    container = Container()
+    container.task_status_repo.override(mock_redis)
+    container.cache_repo.override(mock_redis)
+    container.rate_limit_repo.override(mock_redis)
+    container.message_broker.override(mock_rabbitmq)
+    return container
+
+
+@pytest.fixture
+async def user(session):
+    """
+    Fixture para criar um usuário de teste.
+    """
+    clr_password = "testtest"
+    user = User(
+        username="Teste",
+        email="teste@test.com",
+        hashed_password=hash_password(clr_password),
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    user.clear_password = clr_password
+    return user
+
+
+@pytest.fixture
+async def report_user(session, user):
+    """
+    Fixture para criar um report de teste associado ao user.
+    """
+    report = Report(
+        task_id="test_task_123",
+        topic="Tema teste",
+        content="Conteúdo teste",
+        owner_id=user.id,
+    )
+    session.add(report)
+    await session.commit()
+    await session.refresh(report)
+    return report

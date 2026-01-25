@@ -1,50 +1,36 @@
-"""Controller de Gestão de Usuários."""
-
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.auth_service_sql import AuthServiceSQL
-from utils.logging import get_logger
+from app.api.user.schemas import UserCreate, UserDetailResponse, UserResponse
+from app.core.container import Container
 
-logger = get_logger("users_controller")
+container = Container()
 
 
-async def create_user_logic(
-    username: str, email: str, password: str, session: AsyncSession
-):
+async def create_user_logic(request: UserCreate, db: AsyncSession) -> UserResponse:
+    use_case = container.create_user_use_case()
     try:
-        result = await AuthServiceSQL.create_user(session, username, email, password)
-        return {
-            "username": username,
-            "email": email,
-            "status": "created",
-            "user_id": result["user_id"],
-        }
-    except ValueError as e:
+        entity = await use_case.execute(
+            db, request.username, request.email, request.password
+        )
+        return UserResponse.from_entity(entity)
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    except Exception as e:
-        logger.error(f"Erro crítico: {e}")
-        raise HTTPException(status_code=500, detail="Erro interno") from e
 
 
-async def list_users_logic(session: AsyncSession):
+async def list_users_logic(db: AsyncSession) -> list[UserResponse]:
+    use_case = container.list_users_use_case()
     try:
-        return await AuthServiceSQL.list_usernames(session)
+        entities = await use_case.execute(db)
+        return [UserResponse.from_entity(e) for e in entities]
     except Exception as e:
-        logger.error(f"Erro ao listar usuários: {e}")
-        raise HTTPException(status_code=500, detail="Erro interno") from e
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-async def get_user_logic(user_id: int, session: AsyncSession):
+async def get_user_logic(user_id: int, db: AsyncSession) -> UserDetailResponse:
+    use_case = container.get_user_by_id_use_case()
     try:
-        user = await AuthServiceSQL.get_user_by_id(session, user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
-        return {
-            "user_id": user.id,
-            "username": user.username,
-            "email": user.email,
-        }
+        entity = await use_case.execute(db, user_id)
+        return UserDetailResponse.from_entity(entity)
     except Exception as e:
-        logger.error(f"Erro ao buscar usuário {user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Erro interno") from e
+        raise HTTPException(status_code=404, detail=str(e)) from e

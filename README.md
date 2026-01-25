@@ -6,6 +6,17 @@ Um sistema automatizado e inteligente para análise de inteligência de mercado,
 
 O usuário solicita uma análise sobre um tema (ex: "Impacto da IA no mercado de ações em 2026"). O sistema pesquisa notícias recentes, resume cada uma, analisa o sentimento geral e gera um relatório consolidado, fornecendo insights valiosos para tomada de decisões. 💡
 
+## 🏗️ Arquitetura
+
+O projeto segue os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**, organizando o código em camadas bem definidas:
+
+- **Domain**: Lógica de negócio pura, entidades, repositórios e use cases.
+- **Infrastructure**: Implementações concretas (repositórios SQL/Redis, agentes, workers).
+- **API**: Camada de apresentação (rotas, schemas, controllers).
+- **Core**: Configurações centrais (banco de dados, container DI).
+
+Isso garante desacoplamento, testabilidade e manutenção.
+
 ## ✨ Funcionalidades
 
 - 🔍 **Pesquisa automatizada** de notícias relevantes.
@@ -58,7 +69,7 @@ Siga estes passos simples para configurar o projeto:
 
 ### 🔐 Autenticação
 
-Para fazer login via `/api/v1/auth/login`. Para mais detalhes, consulte [AUTH.MD](docs/AUTH.MD).
+Para fazer login via `/api/v1/auth/login`. Para mais detalhes, consulte AUTH.MD.
 
 ## 🧪 Testes
 
@@ -92,52 +103,78 @@ Para mais detalhes sobre estrutura, execução e boas práticas, consulte TESTES
 │   └── versions/
 ├── app/
 │   ├── startup.py               # Inicialização da aplicação FastAPI 🚀
-│   ├── agents/
-│   │   ├── agent_analyst.py     # Agente analista de mercado 📈
-│   │   └── agent_research.py    # Agente pesquisador 🔍
 │   ├── api/
-│   │   ├── analyze/
+│   │   ├── report/
 │   │   │   ├── controller.py    # Lógica de negócio da análise 🧠
 │   │   │   ├── routes.py        # Rotas da API 🛤️
 │   │   │   └── schemas.py       # Schemas de validação ✅
 │   │   ├── auth/
+│   │   │   ├── controller.py    # Controller de autenticação 🔐
+│   │   │   ├── routes.py        # Rotas de auth
+│   │   │   └── schemas.py       # Schemas de auth
 │   │   ├── status/
+│   │   │   ├── controller.py    # Controller de status de tarefas ⏳
+│   │   │   ├── routes.py        # Rotas de status
+│   │   │   └── schemas.py       # Schemas de status
 │   │   └── user/
-│   ├── core/                    # Sessão do ORM (SQLALCHEMY 2.0)
-│   ├── models/
+│   │       ├── controller.py    # Controller de usuários 👤
+│   │       ├── routes.py        # Rotas de usuários
+│   │       └── schemas.py       # Schemas de usuários
+│   ├── core/                    # Configurações centrais (database, container DI)
+│   │   ├── container.py         # Container de injeção de dependências 🏗️
+│   │   └── database.py          # Sessão do ORM (SQLALCHEMY 2.0)
+│   ├── domain/                  # Camada de domínio (DDD) 🎯
+│   │   ├── auth/
+│   │   │   ├── entities.py      # Entidades de domínio para auth
+│   │   │   ├── repositories.py  # Interfaces de repositório para auth
+│   │   │   └── use_cases.py     # Use cases para auth
+│   │   ├── report/
+│   │   │   ├── entities.py      # Entidades de domínio para relatórios
+│   │   │   ├── repositories.py  # Interfaces de repositório para relatórios
+│   │   │   └── use_cases.py     # Use cases para relatórios
+│   │   ├── status/
+│   │   │   ├── entities.py      # Entidades de domínio para status
+│   │   │   ├── repositories.py  # Interfaces de repositório para status
+│   │   │   └── use_cases.py     # Use cases para status
+│   │   └── user/
+│   │       ├── entities.py      # Entidades de domínio para usuários
+│   │       ├── repositories.py  # Interfaces de repositório para usuários
+│   │       └── use_cases.py     # Use cases para usuários
+│   ├── infrastructure/          # Camada de infraestrutura (implementações) 🔧
+│   │   ├── agents/
+│   │   │   ├── base_agent.py    # Base para agentes 🧠
+│   │   │   ├── agent_analyst.py # Implementação do agente analista
+│   │   │   └── agent_research.py # Implementação do agente pesquisador
+│   │   ├── repositories/
+│   │   │   ├── redis/
+│   │   │   │   ├── cache_repository.py    # Repositório Redis para cache
+│   │   │   │   └── status_repository.py   # Repositório Redis para status
+│   │   │   └── sql/
+│   │   │       ├── auth_repository.py     # Repositório SQL para auth
+│   │   │       ├── report_repository.py   # Repositório SQL para relatórios
+│   │   │       └── user_repository.py     # Repositório SQL para usuários
+│   │   └── workers/
+│   │       ├── base_worker.py            # Base para workers 🔧
+│   │       ├── worker_analyst.py         # Worker para análise e relatórios 📊
+│   │       └── worker_researcher.py      # Worker para pesquisa de notícias 🔎
+│   ├── models/                  # Modelos SQLAlchemy
 │   │   ├── __init__.py
 │   │   ├── reports.py
 │   │   └── user.py
-│   ├── services/
-│   └── workers/
-│       ├── worker_analyst.py     # Worker para análise e relatórios 📊
-│       └── worker_researcher.py  # Worker para pesquisa de notícias 🔎
 ├── docs/                         # Documentos do projeto 📦
-│   ├── AUTH.MD                   # Documentação de autenticação
-│   ├── CHECKPOINT.MD             # Checkpoints de melhorias
-│   ├── CONCEPTS.MD               # Conceitos teóricos vs. prática
-│   ├── DOCKERIZADO.md            # Guia para execução com Docker
-│   ├── RUFFS.MD                  # Documentação do Ruff (linter/formatador)
-│   └── TESTES.MD                 # Documentação de testes
-├── logs/                         # Diretório para logs 🔎
 ├── scripts/                      # Diretório para scripts utilitários
-└── tests/                        # Testes automatizados
-    ├── conftest.py               # Configurações compartilhadas para testes
-    ├── test_analyze.py           # Testes da API de análise
-    ...
-└── utils/                        # Utilitários globais
-    ├── base_agent.py             # Base para agentes 🧠
-    ├── base_worker.py            # Base para workers 🔧
-    ├── broker.py                 # Utilitários para conexão com RabbitMQ
-    ├── exceptions.py             # Exceções reutilizáveis
-    ├── llm.py                    # Configuração de agentes LLM 🤖
-    ├── logging.py                # Configuração de logging
-    ├── redis_client.py           # Cliente Redis
-    ├── reporting.py              # Utilitários para geração de relatórios
-    ├── security.py               # Utilitários de segurança (JWT)
-    ├── send_to_queue.py          # Envio de mensagens para RabbitMQ 📨
-    ├── settings.py               # Configurações globais ⚙️
-    └── tasks_controller.py       # Controle de tarefas no Redis
+├── tests/                        # Testes automatizados
+├── utils/                        # Utilitários globais
+│   ├── broker.py                 # Utilitários para conexão com RabbitMQ
+│   ├── exceptions.py             # Exceções reutilizáveis
+│   ├── llm.py                    # Configuração de agentes LLM 🤖
+│   ├── logging.py                # Configuração de logging
+│   ├── redis_client.py           # Cliente Redis
+│   ├── reporting.py              # Utilitários para geração de relatórios
+│   ├── security.py               # Utilitários de segurança (JWT)
+│   ├── send_to_queue.py          # Envio de mensagens para RabbitMQ 📨
+│   ├── settings.py               # Configurações globais ⚙️
+│   └── tasks_controller.py       # Controle de tarefas no Redis
 ```
 
 ## 📚 Referências

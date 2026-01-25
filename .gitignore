@@ -21,3 +21,6 @@ htmlcov/
 
 # Database files
 *.db
+
+# ruff files
+.ruff_cache/

@@ -12,6 +12,15 @@ from app.models.user import User
 from utils.security import hash_password
 
 
+def set_sqlite_pragma(dbapi_connection, _connection_record):
+    """
+    Ativa foreign keys no SQLite.
+    """
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+
 @pytest.fixture
 async def session():
     """
@@ -22,25 +31,15 @@ async def session():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    async_session = async_sessionmaker(engine, expire_on_commit=False)
+    event.listen(
+        engine.sync_engine, "connect", set_sqlite_pragma
+    )  # Ajuste para engine assíncrona
+    Session = async_sessionmaker(bind=engine)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    async with async_session() as session:
-        yield session
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-
-@event.listens_for(create_async_engine, "connect")
-def set_sqlite_pragma(dbapi_connection, _connection_record):
-    """
-    Ativa foreign keys no SQLite.
-    """
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+    session = Session()
+    yield session
+    await session.close()
 
 
 @pytest.fixture
@@ -72,7 +71,7 @@ async def user(session):
     user = User(
         username="Teste",
         email="teste@test.com",
-        password=hash_password(clr_password),
+        hashed_password=hash_password(clr_password),
     )
     session.add(user)
     await session.commit()
